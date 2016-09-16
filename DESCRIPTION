@@ -1,0 +1,26 @@
+Package: bimark
+Title: Simulate and analyse bilateral mark-recapture data
+Version: 0.1
+Authors@R: c(
+           person("Iago", "Bonnici", email = "iago.bonnici@gmail.com",
+                  role = c("aut", "cre")),
+           person("Olivier", "Gimenez", email = "olivier.gimenez@cefe.cnrs.fr",
+                  role = c("aut"))
+          )
+Description: Here is an experimental package to gather every piece of script
+    developped during an M2 internship into a nice product.
+Depends:
+    R (>= 3.2.3)
+License: GPL-3
+imports: gtools(>= 3.5.0),
+    plyr  (>= 1.8.3),
+    Matrix(>= 1.2-3),
+    MASS  (>= 3-45),
+    Rcpp  (>= 0.12.3),
+    coda  (>= 0.18-1),
+    rjags (>= 4-6),
+    plyr  (>= 1.8.4)
+RoxygenNote: 5.0.1
+LazyData: true
+Suggests: testthat, plyr
+

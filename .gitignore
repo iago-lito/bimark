@@ -1,0 +1,11 @@
+# Convenience file to build the commit message as you code. Use it with:
+#     git commit -eF commitMessage
+# So that it is easy not to forget what has been done during each commit ;)
+commitMessage
+
+# Automatic R package generation:
+bimark/NAMESPACE
+bimark/man/*
+bimark/bimark_*.tar.gz
+bimark/bimark.Rcheck/*
+
