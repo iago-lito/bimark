@@ -92,7 +92,7 @@ test_that("getA works", {
   expected <- c(1, 0,
                 0, 1)
   expected <- Matrix::Matrix(matrix(expected, ncol=LL + 0, byrow=TRUE),
-                             sparse = TRUE)
+                             sparse=TRUE)
   expected <- methods::as(expected, 'dgCMatrix')
   # left AND right:
   actual <- getA(LL, 0)
@@ -102,7 +102,45 @@ test_that("getA works", {
 
   # super-degenerated:
   actual <- getA(0, 0)
-  expected <- Matrix::Matrix(matrix(integer(0), ncol=0, byrow=TRUE), sparse = TRUE)
+  expected <- Matrix::Matrix(matrix(integer(0), ncol=0, byrow=TRUE),
+                             sparse=TRUE)
+  expected <- methods::as(expected, 'dgCMatrix')
+  expect_equal(actual, expected)
+
+  })
+
+test_that("getB works", {
+
+  # regular
+  actual <- getB(LL, LR)
+  expected <- c(-1, -1, -1,  0,  0,  0,
+                 0,  0,  0, -1, -1, -1,
+                -1,  0,  0, -1,  0,  0,
+                 0, -1,  0,  0, -1,  0,
+                 0,  0, -1,  0,  0, -1,
+                 1,  0,  0,  0,  0,  0,
+                 0,  1,  0,  0,  0,  0,
+                 0,  0,  1,  0,  0,  0,
+                 0,  0,  0,  1,  0,  0,
+                 0,  0,  0,  0,  1,  0,
+                 0,  0,  0,  0,  0,  1)
+  expected <- Matrix::Matrix(matrix(expected, ncol=LL * LR, byrow=TRUE))
+  expect_equal(actual, expected)
+
+  # degenerated:
+  expected <- Matrix::Matrix(matrix(integer(0), ncol=0, nrow=LL, byrow=TRUE),
+                             sparse=TRUE)
+  expected <- methods::as(expected, 'dgCMatrix')
+  # left AND right:
+  actual <- getB(LL, 0)
+  expect_equal(actual, expected)
+  actual <- getB(0, LL)
+  expect_equal(actual, expected)
+
+  # super-degenerated:
+  actual <- getB(0, 0)
+  expected <- Matrix::Matrix(matrix(integer(0), ncol=0, byrow=TRUE),
+                             sparse=TRUE)
   expected <- methods::as(expected, 'dgCMatrix')
   expect_equal(actual, expected)
 

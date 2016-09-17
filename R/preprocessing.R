@@ -180,19 +180,19 @@ getA <- function(LL, LR) { # {{{
   LM <- LU + LB
 
   # Generate the matrix!
-  seqLU <- seq.int(1, LU)
+  seqLU <- seq.int(1L, LU)
   if (LB == 0) { # degenerated case
     if(LU == 0) # only S-hists
-      A <- Matrix::sparseMatrix(i=integer(0), j=integer(0), dims=c(0,0))
+      A <- Matrix::sparseMatrix(i=integer(0), j=integer(0), dims=c(0, 0))
     else
       A <- Matrix::sparseMatrix(seqLU, seqLU, x=1L)
   } else {
-    seqLB <- seq.int(1, LB)
-    seqLL <- seq.int(1, LL)
-    seqLR <- seq.int(1, LR)
+    seqLB <- seq.int(1L, LB)
+    seqLL <- seq.int(1L, LL)
+    seqLR <- seq.int(1L, LR)
     each  <- rep.int(LR, LL)
     # rows where there are 1's
-    rows <- c(seqLU, LU + rep.int(seqLB, 2))
+    rows <- c(seqLU, LU + rep.int(seqLB, 2L))
     # columns where there are 1's
     cols  <- c(seqLU, rep.int(seqLL, each), LL + rep.int(seqLR, LL))
     # final matrix:
@@ -202,6 +202,76 @@ getA <- function(LL, LR) { # {{{
   # that's it!
   A <- methods::as(A, 'dgCMatrix') # or R'll choose anything it likes
   return(A)
+
+} # }}}
+
+#' Generate B matrix, nullspace of t(A)
+#'
+#' The polytope is directly described by a kernel of the observation process
+#' matrix A (more exactly t(A)). Just like A, its pattern is quite easy-to-grasp
+#' once the histories has been sorted in polytope order. So it is easy to
+#' generate and it only depends on the number of L-histories (LL) and of
+#' R-histories (LR). Here is the pattern:\preformatted{
+#'       ______B_B_B_B_B_B-latent_histories______________________
+#'        a L  - - - 0 0 0 L-block |
+#'        b_L__0_0_0_-_-_-_________|
+#'        1 R  - 0 0 - 0 0         | '-' are minus ones -1's
+#'        2 R  0 - 0 0 - 0 R-block |
+#'  B:    3_R__0_0_-_0_0_-_________|_______________________________
+#'       a1 B  + 0 0 0 0 0         |
+#'       a2 B  0 + 0 0 0 0         |
+#'       a3 B  0 0 + 0 0 0 B-block | Identity : '+' are ones 1's
+#'       b1 B  0 0 0 + 0 0         |
+#'       b2 B  0 0 0 0 + 0         |
+#'       b3_B__0_0_0_0_0_+_________|_______________________________}
+#'
+# (ugly-but-efficient as well: the pattern of B is easy to grasp and only
+# depends on LL and LR)
+#'
+#' @keywords matrix polytope
+#'
+#' @seealso getA
+#'
+#' @examples
+#' getB(LL=2, LR=3)
+#'
+#' @param LL int the number of observed L-histories (not the sum of their
+#' frequencies but the number of *different* types of L-histories observed.
+#' @param LR int the number of observed R-histories
+#'
+#' @return the polytope matrix B as a `sparseMatrix` : a LM x LB matrix with
+#' ones, zeroes and minus ones, each row corresponding to a latent history
+#' sorted in polytope order, each column corresponding to an unobservable
+#' B-history sorded in polytope order.
+#'
+#' @export
+
+getB <- function(LL, LR) { # {{{
+
+  # Basic needed values:
+  LU <- LL + LR
+  LB <- LL * LR
+  LM <- LU + LB
+
+  if (LB == 0){ # degenerated case
+    if(LU == 0) # only S-hists
+      B <- Matrix::sparseMatrix(i=integer(0), j=integer(0), dims=c(0, 0))
+    else
+      B <- Matrix::sparseMatrix(i=integer(0), j=integer(0), dims=c(LM, 0))
+  } else {
+    seqLL <- seq.int(1L, LL)
+    seqLR <- seq.int(1L, LR)
+    seqLB <- seq.int(1L, LB)
+    each  <- rep.int(LR, LL)
+    rows <- rep.int(seqLB, 3) # those target the -1's
+    cols <- c(LU + seqLB, rep.int(seqLL, each), LL + rep.int(seqLR, LL))
+    B <- Matrix::t(Matrix::sparseMatrix(rows, cols, x=rep.int(c(1L, -1L),
+                                                              c(LB, 2L * LB))))
+  }
+
+  # that's it!
+  B <- methods::as(B, 'dgCMatrix') # or R'll choose anything it likes
+  return(B)
 
 } # }}}
 
