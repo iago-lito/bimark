@@ -4,8 +4,8 @@
 commitMessage
 
 # Automatic R package generation:
-bimark/NAMESPACE
-bimark/man/*
-bimark/bimark_*.tar.gz
-bimark/bimark.Rcheck/*
+NAMESPACE
+man/*
+bimark_*.tar.gz
+bimark.Rcheck/*
 

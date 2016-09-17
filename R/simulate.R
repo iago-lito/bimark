@@ -4,8 +4,6 @@
 
 #' Capture events and their integer representations
 #'
-#' @description
-#'
 #'  \tabular{ccc}{
 #'    0 : \tab no capture                     \tab : 0\cr
 #'    L : \tab right capture                  \tab : 1\cr
@@ -35,6 +33,36 @@ captureEvents <- c(
 #' @export
 
 nbCaptureEvents <- length(captureEvents)
+
+#' One small, convenient example of an observation matrix
+#'
+#' Drawn from Bonnici's M2 report.
+#'
+#' @export
+
+example.M <- matrix(captureEvents[
+            c("0", "0", "R", "0", "0",
+              "0", "0", "0", "0", "L",
+              "L", "0", "B", "S", "0",
+              "0", "0", "L", "0", "L",
+              "0", "0", "R", "0", "0",
+              "0", "R", "0", "0", "0",
+              "0", "R", "0", "0", "0",
+              "0", "0", "L", "0", "L",
+              "0", "0", "0", "0", "L",
+              "S", "0", "L", "0", "0",
+              "0", "R", "0", "0", "0",
+              "0", "R", "0", "0", "0",
+              "0", "0", "0", "0", "L",
+              "0", "0", "0", "0", "L",
+              "0", "R", "0", "0", "0",
+              "0", "0", "0", "0", "L",
+              "0", "0", "R", "0", "0",
+              "S", "0", "L", "0", "0",
+              "0", "0", "L", "0", "L",
+              "0", "0", "R", "0", "0",
+              "0", "R", "0", "0", "0",
+              "R", "0", "0", "0", "R")], ncol=5, byrow=TRUE)
 
 # }}}
 
@@ -151,11 +179,9 @@ Hist2ID <- function(history){ # {{{
 #'
 #' @examples
 #' Hist2ID(c(0, 4, 0, 1, 3))
-#' Hist2ID(matrix(c(0, 4, 0, 1, 3,
-#'                  1, 1, 0, 2, 0,
-#'                  0, 3, 4, 0, 0,
-#'                  0, 0, 0, 4, 4), 4, 5, byrow=TRUE))
-#' Hist2ID(generateLatentHistories(4, 5))
+#' set.seed(6)
+#' hists <- generateLatentHistories(10)
+#' Hist2ID(hists)
 #'
 #' @seealso Hist2ID
 #'
@@ -214,6 +240,11 @@ ID2Hist <- function(id, T){ # {{{
 #'
 #' @return a list of index vectors, each named item corresponding to a block of
 #' histories: "0", "S", "L", "R", "B"
+#'
+#' @examples
+#' set.seed(6)
+#' hists <- generateLatentHistories(N=20)
+#' orderHists(hists)
 #'
 #' @export
 
@@ -301,6 +332,12 @@ orderHists <- function(hists){ # {{{
 #' @return boolean TRUE is the history can be observed, or a mask selecting the
 #' observable histories
 #'
+#' @examples
+#' isObservable(captureEvents[c('R', 'S', 'S', 'R', 'S')])
+#' isObservable(captureEvents[c('R', 'B', 'B', 'B', '0')])
+#' set.seed(12)
+#' isObservable(generateLatentHistories(N=20))
+#'
 #' @export
 
 isObservable <- function(history){ # {{{
@@ -355,6 +392,11 @@ isObservable <- function(history){ # {{{
 #' @return an observation matrix: histories one would observe if `latent` were
 #' the latent ones.
 #'
+#' @examples
+#' set.seed(2)
+#' hists <- generateLatentHistories(N=10)
+#' observeHist(hists)
+#'
 #' @export
 
 observeHist <- function(latent){ # {{{
@@ -401,6 +443,11 @@ observeHist <- function(latent){ # {{{
 #' @keywords histories id row visualisation convenience
 #'
 #' @return NULL only formats the histories `x` to the console
+#'
+#' @examples
+#' seeHist(1015)
+#' seeHist(c(1015, 1, 42, 2092))
+#' seeHist(generateLatentHistories(N=20))
 #'
 #' @export
 

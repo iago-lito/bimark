@@ -17,6 +17,15 @@
 #' @return a data.frame with two fields: `id` are observed histories IDs, and
 #' `F` with the corresponding observed counts
 #'
+#' @examples
+#' set.seed(12)
+#' hists <- generateLatentHistories(N=20)
+#' obs <- observeHist(hists)
+#' seeHist(obs)
+#' observedFrequencies(obs)
+#'
+#' observedFrequencies(example.M)
+#'
 #' @export
 
 observedFrequencies <- function(M){ # {{{
@@ -67,6 +76,21 @@ observedFrequencies <- function(M){ # {{{
 #'
 #' @seealso observeHist
 #'
+#' @examples
+#' # raw observation data
+#' obs <- observedFrequencies(example.M)
+#' Omega.LRS <- ID2Hist(obs$id, T=ncol(example.M))
+#' # sort in canonical order
+#' o <- orderHists(Omega.LRS)
+#' Omega.S <- Omega.LRS[o$S,]
+#' Omega.L <- Omega.LRS[o$L,]
+#' Omega.R <- Omega.LRS[o$R,]
+#' # get unobservable block in polytope order
+#' Omega.B <- getOmega.B(Omega.L, Omega.R)
+#' # and this is canonical Omega:
+#' Omega <- rbind(Omega.S, Omega.L, Omega.R, Omega.B)
+#' seeHist(Omega)
+#'
 #' @export
 
 getOmega.B <- function(Omega.L, Omega.R) { # {{{
@@ -104,4 +128,80 @@ getOmega.B <- function(Omega.L, Omega.R) { # {{{
   return(Omega.B)
 
 }# }}}
+
+#' Generate A matrix from LL and LR
+#'
+#' This version of the A matrix, as in Bonner2013 only takes into account the
+#' histories actually observed in the data, and the only latent histories that
+#' could have generated them. Each latent history (in rows) generates the
+#' observed histories corresponding to the columns in which they contain a 1.
+#' Thanks to polytope ordering, its generation is really simple since its
+#' pattern only depends on the number of L-histories (LL) and R-histories (LR).
+#' Here is the pattern:\preformatted{
+#'       ______L_L_R_R_R-observable_and_ghosts___________________
+#'        a L  1 0 0 0 0 L-block |
+#'        b_L__0_1_0_0_0_________|
+#'        1 R  0 0 1 0 0         | Identity
+#'        2 R  0 0 0 1 0 R-block |
+#'  A:    3_R__0_0_0_0_1_________|_______________________________
+#'       a1 B  1 0 1 0 0         |
+#'       a2 B  1 0 0 1 0         |
+#'       a3 B  1 0 0 0 1 B-block | Combinations in polytope order
+#'       b1 B  0 1 1 0 0         |
+#'       b2 B  0 1 0 1 0         |
+#'       b3_B__0_1_0_0_1_________|_______________________________}
+#'
+#' The matrix A is actually not directly useful for JAGS because the polytope is
+#' better described by its kernel B.
+#'
+#' @param LL int the number of observed L-histories (not the sum of their
+#' frequencies but the number of *different* types of L-histories observed.
+#' @param LR int the number of observed R-histories
+#'
+#' @keywords observation matrix process
+#'
+#' @seealso getOmega.B getB
+#'
+#' @examples
+#' getA(LL=2, LR=3)
+#'
+#' @return the observation matrix A as a `sparseMatrix` : a LM x LU matrix with
+#' ones and zeroes, each row corresponding to a latent history sorted in
+#' polytope order, each column corresponding to an observable history sorded in
+#' polytope (or "canonical") order.
+#'
+#' @export
+
+getA <- function(LL, LR) { # {{{
+
+  # Basic needed values:
+  LU <- LL + LR
+  LB <- LL * LR
+  LM <- LU + LB
+
+  # Generate the matrix!
+  seqLU <- seq.int(1, LU)
+  if (LB == 0) { # degenerated case
+    if(LU == 0) # only S-hists
+      A <- Matrix::sparseMatrix(i=integer(0), j=integer(0), dims=c(0,0))
+    else
+      A <- Matrix::sparseMatrix(seqLU, seqLU, x=1L)
+  } else {
+    seqLB <- seq.int(1, LB)
+    seqLL <- seq.int(1, LL)
+    seqLR <- seq.int(1, LR)
+    each  <- rep.int(LR, LL)
+    # rows where there are 1's
+    rows <- c(seqLU, LU + rep.int(seqLB, 2))
+    # columns where there are 1's
+    cols  <- c(seqLU, rep.int(seqLL, each), LL + rep.int(seqLR, LL))
+    # final matrix:
+    A <- Matrix::sparseMatrix(rows, cols, x=1L)
+  }
+
+  # that's it!
+  A <- methods::as(A, 'dgCMatrix') # or R'll choose anything it likes
+  return(A)
+
+} # }}}
 
