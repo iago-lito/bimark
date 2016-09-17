@@ -93,7 +93,8 @@ throw <- function(message){
 #' generateLatentHistories(N=20, T=5, P=rep(.1, 5), delta=c(0, 4, 4, 2, 3))
 #'
 #' @return a matrix of capture events: one row per individual, one column per
-#' capture occasion: each row is an individual capture history.
+#' capture occasion: each row is an individual capture history. These are the
+#' latent histories.
 #'
 #' @export
 
@@ -394,8 +395,8 @@ isObservable <- function(history){ # {{{
 #'
 #' @examples
 #' set.seed(2)
-#' hists <- generateLatentHistories(N=10)
-#' observeHist(hists)
+#' latent <- generateLatentHistories(N=10)
+#' observeHist(latent)
 #'
 #' @export
 

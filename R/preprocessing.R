@@ -1,11 +1,13 @@
 # Here is R script to preprocess bilateral data
 # Feed it with observation matrices as given by `observeHist`
 
-#' Get observed frequency counts from the observation matrix
+#' Get frequency counts from raws histories matrix
 #'
-#' The observation matrix stacks every observed history, with one line per side
-#' or individual. The frequency counts sums it up by the number of times each
-#' history has been observed.
+#' The raw history matrix (like the observation matrix M or the latent histories
+#' matrix) stacks every history, with one line per side or individual. The
+#' frequency counts sums it up by the number of times each history has occured.
+#' This is useful to get F observed counts from the observation matrix M, or to
+#' get the latent histories counts X from the latent simulated histories.
 #'
 #' @keywords observation frequency counts
 #'
@@ -18,17 +20,22 @@
 #' `F` with the corresponding observed counts
 #'
 #' @examples
-#' set.seed(12)
-#' hists <- generateLatentHistories(N=20)
-#' obs <- observeHist(hists)
-#' seeHist(obs)
-#' observedFrequencies(obs)
+#' # on toy example
+#' F <- getFrequencies(example.M)
 #'
-#' observedFrequencies(example.M)
+#' # on generated data
+#' set.seed(12)
+#' latent <- generateLatentHistories(N=20)
+#' obs <- observeHist(latent)
+#' seeHist(obs)
+#' F <- getFrequencies(obs)
+#'
+#' # This also works directly with latent histories
+#' X <- getFrequencies(latent)
 #'
 #' @export
 
-observedFrequencies <- function(M){ # {{{
+getFrequencies <- function(M){ # {{{
 
   counts <- as.data.frame(table(Hist2ID(M)))
   counts[,1] <- as.integer(as.character(counts[,1]))
@@ -78,7 +85,7 @@ observedFrequencies <- function(M){ # {{{
 #'
 #' @examples
 #' # raw observation data
-#' obs <- observedFrequencies(example.M)
+#' obs <- getFrequencies(example.M)
 #' Omega.LRS <- ID2Hist(obs$id, T=ncol(example.M))
 #' # sort in canonical order
 #' o <- orderHists(Omega.LRS)

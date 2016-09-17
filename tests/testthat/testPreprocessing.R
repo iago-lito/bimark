@@ -52,9 +52,9 @@ Omega.B <- matrix(captureEvents[
                    "R", "0", "L", "0", "B")], ncol=5, byrow=TRUE)
 
 
-test_that("observedFrequencies works", {
+test_that("getFrequencies works", {
   expected <- data.frame(id=Hist2ID(Omega.SLR), F=F)
-  actual <- observedFrequencies(M)
+  actual <- getFrequencies(M)
   # canonic order to compare
   oa <- unlist(orderHists(ID2Hist(actual$id, T)))
   oe <- unlist(orderHists(ID2Hist(expected$id, T)))
