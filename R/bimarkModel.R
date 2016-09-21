@@ -3,7 +3,8 @@
 # convenience string for the scripts:
 bmclass <- "BimarkModel"
 
-#' Create the data object that'll endure all this package processing
+#' Manipulate a simple `BimarkModel` object to generate and process bilateral
+#' data.
 #'
 #' This object will contain every relevant data. And they will be *consistent*
 #' at any time.. provided one do not try to set the slots by oneself: nothing is
@@ -26,13 +27,13 @@ bmclass <- "BimarkModel"
 #' @slot LR number of R-histories observed
 #' @slot iOmega latent histories matrix (stored as ids in canonical order)
 #'
-#' @seealso print.BimarkModel
+#' @seealso bimarkSimulationModel bimarkObservationModel print.BimarkModel
 #'
-#' @examples
-#' m <- createBimarkModel()
-#'
-#' @export
+#' @docType package
+#' @name bimark
+NULL
 
+# Utility method to create an empty model object
 createBimarkModel <- function() { # {{{
   model <- list(
                 L=NULL,
@@ -55,19 +56,12 @@ createBimarkModel <- function() { # {{{
 #' @seealso createBimarkModel
 #'
 #' @examples
-#' m <- createBimarkModel()
-#' m
+#' m <- bimarkSimulationModel()
 #' print(m)
 #'
 #' @export
 
 print.BimarkModel <- function(model, ...) { # {{{
-
-  # Consider it as empty if there are no raw histories matrices:
-  if (is.null(model$M)) {
-    cat("empty", bmclass, '\n')
-    return()
-  }
 
   cat(bmclass, "object:\n")
 
@@ -112,21 +106,21 @@ print.BimarkModel <- function(model, ...) { # {{{
 #'
 #' @seealso generateLatentHistories
 #'
-#' @param model a virgin BimarkModel object
-#' @param ... further arguments to generateLatentHistories
+#' @param ... arguments to generateLatentHistories
 #'
 #' @examples
-#' m <- createBimarkModel()
-#' m <- addLatentHistories(m)
+#' m <- bimarkSimulationModel()
 #'
 #' @return the model object updated
 #'
 #' @export
 
-addLatentHistories <- function(model, N     = 500, # {{{
-                                      T     = 5,
-                                      P     = rep(.1, T),
-                                      delta = c(0., 4., 4., 2., 3.)) {
+bimarkSimulationModel <- function(N     = 500, # {{{
+                                  T     = 5,
+                                  P     = rep(.1, T),
+                                  delta = c(0., 4., 4., 2., 3.)) {
+
+  model <- createBimarkModel()
 
   L <- generateLatentHistories(N, T, P, delta)
 
@@ -139,7 +133,7 @@ addLatentHistories <- function(model, N     = 500, # {{{
 
   # then simulate the observation process of these latent histories:
   M <- observeHist(L)
-  model <- addObservedHistories(model, M)
+  model <- addObservationToModel(model, M)
 
   return(model)
 
@@ -156,14 +150,22 @@ addLatentHistories <- function(model, N     = 500, # {{{
 #' @return the model object updated
 #'
 #' @examples
-#' m <- createBimarkModel()
-#' m <- addObservedHistories(m, example.M)
+#' m <- bimarkObservationModel(example.M)
 #'
 #' @seealso Hist2Id getFrequencies getOmega.B getA getB orderHists
 #'
 #' @export
 
-addObservedHistories <- function(model, M) { # {{{
+bimarkObservationModel <- function(M) { # {{{
+
+  model <- createBimarkModel()
+
+  return(addObservationToModel(model, M))
+
+}
+
+# convenience to be called from `bimarkSimulationModel`
+addObservationToModel <- function(model, M) {
 
   T <- ncol(M)
   counts <- getFrequencies(M)
