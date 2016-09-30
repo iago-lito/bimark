@@ -164,7 +164,8 @@ bimarkObservationModel <- function(M) { # {{{
 
 }
 
-# convenience to be called from `bimarkSimulationModel`
+# convenience to be called from both `bimarkSimulationModel` and
+# `bimarkObservationModel`
 addObservationToModel <- function(model, M) {
 
   T <- ncol(M)
@@ -195,4 +196,50 @@ addObservationToModel <- function(model, M) {
   return(model)
 
 } # }}}
+
+#' Protect BimarkModel pseudo-members for encapsulation
+#'
+#' By overloading these functions, we expect the user not to be able to write to
+#' the typed lists `BimarkModel`.
+#'
+#' @examples
+#' m <- bimarkObservationModel(example.M)
+#' # read ok
+#' m$LR
+#' # no write
+#' try(m$LR <- 82, TRUE)
+#'
+#' @export
+`$<-.BimarkModel` <- function(o, ...) {
+  # This should not forbid use by the package. So we need to check the
+  # context here: if the operator is called from a regular `bimark:*` method,
+  # then let it run as expected. Otherwise it is that the user has asked for
+  # internal members edition: raise an error.
+  # First: list authorized methods: methods in this package:
+  bimarkEnv <- environment(generateLatentHistories)
+  friends <- objects(bimarkEnv) # here are their names
+  # Second, get the calling function name:
+  callerName <- as.character(sys.call(-2)[1])
+  if (length(callerName) == 0) callerName <- "" # dirty R adjustment.. 'hate R.
+  # Third: if the names match, check that they are the actual same method:
+  if (callerName %in% friends) {
+    # get the actual caller function, the actual friend function, and compare
+    caller <- sys.function(-2)
+    friend <- get(callerName, bimarkEnv)
+    if (identical(caller, friend))
+      # then we've been called by a friend, do as usual:
+      # (R fiddle-faddle, I've found no other way :( )
+      # change the class temporarily so the right `$<-` is called
+      cl <- class(o)                # save the class
+      class(o) <- NULL              # clear the class
+      args <- c(list(o), list(...)) # gather into one arguments list
+      res <- do.call(`$<-`, args)   # get native result
+      class(res) <- cl              # restore the class
+      return(res)                   # that's it
+  }
+  # Or raise an error and explain to user.. sorry :)
+  cat("Write access to BimarkModel elements is denied to the user.\n")
+  stop(paste0("The ", bmclass, " object is supposed to be encapsulated. ",
+               "Please do not try editing its elements with `$`."))
+}
 

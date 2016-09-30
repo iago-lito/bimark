@@ -1,4 +1,5 @@
 
-> protect object's data! Maybe by highjacking the `model$attribute <- value`
+- protect object's data! Maybe by highjacking the `model$attribute <- value`
   operator
+  > also override `[<-` and `[[<-`
 
