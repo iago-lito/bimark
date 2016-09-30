@@ -209,9 +209,9 @@ addObservationToModel <- function(model, M) {
 #' m[['LR']]
 #' m['LR']
 #' # no write
-#' try(m$LR <- 82, TRUE)
-#' try(m[['LR']] <- 82, TRUE)
-#' try(m['LR'] <- list(LR=82), TRUE)
+#' m$LR <- 82
+#' m[['LR']] <- 82
+#' m['LR'] <- list(LR=82)
 #'
 #' @name BimarkModelEncapsulation
 NULL
@@ -230,6 +230,7 @@ NULL
   }
   # Or raise an error and explain to user.. sorry :)
   warnUserEncapsulationViolation('$')
+  return(o)
 }
 
 #' @rdname BimarkModelEncapsulation
@@ -246,6 +247,7 @@ NULL
   }
   # Or raise an error and explain to user.. sorry :)
   warnUserEncapsulationViolation('[[')
+  return(o)
 }
 
 #' @rdname BimarkModelEncapsulation
@@ -262,6 +264,7 @@ NULL
   }
   # Or raise an error and explain to user.. sorry :)
   warnUserEncapsulationViolation('[')
+  return(o)
 }
 
 # Isolate checking caller function: is it allowed to edit model object?
@@ -300,8 +303,9 @@ nativeWriteResult <- function(method, object, ...) {
 # Isolated warning the user of denied access
 # @param operator char the operator user has tried using
 warnUserEncapsulationViolation <- function(operator) {
-  cat("Write access to BimarkModel elements is denied to the user.\n")
-  stop(paste0("The ", bmclass, " object is supposed to be encapsulated. ",
-               "Please do not try editing its elements with `", operator,"`."))
+  cat("The ", bmclass, " object is supposed to be encapsulated. ",
+      "Write access is denied to the user.\n",
+      "Please do not try editing its elements with `", operator,"`. ",
+      "See `help(BimarkModelEncapsulation)`.\n", sep='')
 } # }}}
 

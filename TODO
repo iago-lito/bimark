@@ -3,5 +3,5 @@
   operator
   - also override `[<-` and `[[<-`
   > test forbidden model editing output and errors more rigourously
-> stop throwing an error: a `cat` warning should be enough
+- stop throwing an error: a `cat` warning should be enough
 
