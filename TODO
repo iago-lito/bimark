@@ -1,5 +1,7 @@
 
 - protect object's data! Maybe by highjacking the `model$attribute <- value`
   operator
-  > also override `[<-` and `[[<-`
+  - also override `[<-` and `[[<-`
+  > test forbidden model editing output and errors more rigourously
+> stop throwing an error: a `cat` warning should be enough
 
