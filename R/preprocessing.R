@@ -21,21 +21,21 @@
 #'
 #' @examples
 #' # on toy example
-#' F <- getFrequencies(example.M)
+#' F <- compute.Frequencies(example.M)
 #'
 #' # on generated data
 #' set.seed(12)
 #' latent <- generateLatentHistories(N=20)
 #' obs <- observeHist(latent)
 #' seeHist(obs)
-#' F <- getFrequencies(obs)
+#' F <- compute.Frequencies(obs)
 #'
 #' # This also works directly with latent histories
-#' X <- getFrequencies(latent)
+#' X <- compute.Frequencies(latent)
 #'
 #' @export
 
-getFrequencies <- function(M){ # {{{
+compute.Frequencies <- function(M){ # {{{
 
   counts <- as.data.frame(table(Hist2ID(M)))
   counts[,1] <- as.integer(as.character(counts[,1]))
@@ -64,17 +64,19 @@ getFrequencies <- function(M){ # {{{
 #'     Rule 4 : observed L and R together may come from a latent B
 #' Polytope order for B-histories is the nested order of canonical R-order
 #' within canonical L-order, as follows:
-#'      L - 1
-#'      L - 2
-#'      R - 1
-#'      R - 2
-#'      R - 3
-#'      B - generating L1 and R1
-#'      B - generating L1 and R2
-#'      B - generating L1 and R3
-#'      B - generating L2 and R1
-#'      B - generating L2 and R2
-#'      B - generating L2 and R3
+#'       |          |  S - generating L2 and R2
+#'       | Omega.S  |  S - generating L2 and R3
+#'       |         |   L - 1
+#'       | Omega.L |   L - 2
+#'       |          |  R - 1
+#'       | Omega.R  |  R - 2
+#' Omega |          |  R - 3
+#'       |         |   B - generating L1 and R1
+#'       |         |   B - generating L1 and R2
+#'       | Omega.B |   B - generating L1 and R3
+#'       |         |   B - generating L2 and R1
+#'       |         |   B - generating L2 and R2
+#'       |         |   B - generating L2 and R3
 #'
 #' @param Omega.L a matrix of unique, observed L-histories.
 #' @param Omega.R a matrix of unique, observed R-histories.
@@ -85,7 +87,7 @@ getFrequencies <- function(M){ # {{{
 #'
 #' @examples
 #' # raw observation data
-#' obs <- getFrequencies(example.M)
+#' obs <- compute.Frequencies(example.M)
 #' Omega.LRS <- ID2Hist(obs$id, T=ncol(example.M))
 #' # sort in canonical order
 #' o <- orderHists(Omega.LRS)
@@ -93,14 +95,14 @@ getFrequencies <- function(M){ # {{{
 #' Omega.L <- Omega.LRS[o$L,]
 #' Omega.R <- Omega.LRS[o$R,]
 #' # get unobservable block in polytope order
-#' Omega.B <- getOmega.B(Omega.L, Omega.R)
+#' Omega.B <- compute.Omega.B(Omega.L, Omega.R)
 #' # and this is canonical Omega:
 #' Omega <- rbind(Omega.S, Omega.L, Omega.R, Omega.B)
 #' seeHist(Omega)
 #'
 #' @export
 
-getOmega.B <- function(Omega.L, Omega.R) { # {{{
+compute.Omega.B <- function(Omega.L, Omega.R) { # {{{
 
   # basic informations:
   T <- ncol(Omega.L)
@@ -167,10 +169,10 @@ getOmega.B <- function(Omega.L, Omega.R) { # {{{
 #'
 #' @keywords observation matrix process
 #'
-#' @seealso getOmega.B getB
+#' @seealso compute.Omega.B compute.B
 #'
 #' @examples
-#' getA(LL=2, LR=3)
+#' compute.A(LL=2, LR=3)
 #'
 #' @return the observation matrix A as a `sparseMatrix` : a LM x LU matrix with
 #' ones and zeroes, each row corresponding to a latent history sorted in
@@ -179,7 +181,7 @@ getOmega.B <- function(Omega.L, Omega.R) { # {{{
 #'
 #' @export
 
-getA <- function(LL, LR) { # {{{
+compute.A <- function(LL, LR) { # {{{
 
   # Basic needed values:
   LU <- LL + LR
@@ -237,10 +239,10 @@ getA <- function(LL, LR) { # {{{
 #'
 #' @keywords matrix polytope
 #'
-#' @seealso getA
+#' @seealso compute.A
 #'
 #' @examples
-#' getB(LL=2, LR=3)
+#' compute.B(LL=2, LR=3)
 #'
 #' @param LL int the number of observed L-histories (not the sum of their
 #' frequencies but the number of *different* types of L-histories observed.
@@ -253,7 +255,7 @@ getA <- function(LL, LR) { # {{{
 #'
 #' @export
 
-getB <- function(LL, LR) { # {{{
+compute.B <- function(LL, LR) { # {{{
 
   # Basic needed values:
   LU <- LL + LR

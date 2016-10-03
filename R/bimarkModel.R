@@ -153,7 +153,7 @@ bimarkSimulationModel <- function(N     = 500, # {{{
 #' @examples
 #' m <- bimarkObservationModel(example.M)
 #'
-#' @seealso Hist2Id getFrequencies getOmega.B getA getB orderHists
+#' @seealso Hist2Id compute.Frequencies compute.Omega.B compute.A compute.B orderHists
 #'
 #' @export
 
@@ -170,7 +170,7 @@ bimarkObservationModel <- function(M) { # {{{
 addObservationToModel <- function(model, M) {
 
   T <- ncol(M)
-  counts <- getFrequencies(M)
+  counts <- compute.Frequencies(M)
   hists <- ID2Hist(counts$id, T) # unique hists
   # reorganize the canonical way:
   o <- orderHists(hists)
@@ -182,7 +182,7 @@ addObservationToModel <- function(model, M) {
   F <- counts$F[canonicalOrder]
 
   # Compute Omega.B and nullspace informations:
-  Omega.B <- getOmega.B(hists[o$L,], hists[o$R,])
+  Omega.B <- compute.Omega.B(hists[o$L,], hists[o$R,])
   iOmega <- c(iOmega.SLR, Hist2ID(Omega.B))
 
   # That's it!
@@ -312,5 +312,99 @@ warnUserEncapsulationViolation <- function(operator) {
       "Write access is denied to the user.\n",
       "Please do not try editing its elements with `", operator,"`. ",
       "See `help(BimarkModelEncapsulation)`.\n", sep='')
+} # }}}
+
+#' Get polytope matrices from a BimarkModel object
+#'
+#' see `help(compute.A)`, `help(compute.B)`
+#'
+#' @param model a valid BimarkModel object
+#'
+#' @return The corresponding matrix as computed by `compute.A` or `compute.B`
+#'
+#' @seealso compute.A compute.B
+#' @export
+
+get.A <- function(model) { # {{{
+  return(compute.A(model$LL, model$LR))
+}
+
+#' @rdname get.A
+#' @export
+get.B <- function(model) {
+  return(compute.B(model$LL, model$LR))
+} # }}}
+
+#' Get various parts of the Omega matrix
+#'
+#' See `help(compute.Omega.B)`.
+#'
+#' @param model a valid BimarkModel object
+#'
+#' @return the corresponding Omega matrix
+#'
+#' @seealso compute.Omega.B
+#' @export
+
+get.Omega <- function(model) { # {{{
+  return(ID2Hist(model$iOmega, model$T))
+}
+
+#' @rdname get.Omega
+#' @export
+get.Omega.S <- function(model) {
+  LS <- model$LS
+  iOmega.S <- model$iOmega[1:LS]
+  return(ID2Hist(iOmega.S, model$T))
+}
+
+#' @rdname get.Omega
+#' @export
+get.Omega.L <- function(model) {
+  LS <- model$LS
+  LL <- model$LL
+  iOmega.L <- model$iOmega[LS + (1:LL)]
+  return(ID2Hist(iOmega.L, model$T))
+}
+
+#' @rdname get.Omega
+#' @export
+get.Omega.R <- function(model) {
+  LS <- model$LS
+  LL <- model$LL
+  LR <- model$LR
+  iOmega.R <- model$iOmega[LS + LL + (1:LR)]
+  return(ID2Hist(iOmega.R, model$T))
+}
+
+#' @rdname get.Omega
+#' @export
+get.Omega.B <- function(model) {
+  LS <- model$LS
+  LL <- model$LL
+  LR <- model$LR
+  LB <- LL * LR
+  iOmega.B <- model$iOmega[LS + LL + LR + (1:LB)]
+  return(ID2Hist(iOmega.B, model$T))
+}
+
+#' @rdname get.Omega
+#' @export
+get.Omega.SLR <- function(model) {
+  LS <- model$LS
+  LL <- model$LL
+  LR <- model$LR
+  iOmega.SLR <- model$iOmega[1:(LS + LL + LR)]
+  return(ID2Hist(iOmega.SLR, model$T))
+}
+
+#' @rdname get.Omega
+#' @export
+get.Omega.LR <- function(model) {
+  LS <- model$LS
+  LL <- model$LL
+  LR <- model$LR
+  iOmega.LR <- model$iOmega[LS + 1:(LL + LR)]
+  return(ID2Hist(iOmega.LR, model$T))
 } # }}}
 
