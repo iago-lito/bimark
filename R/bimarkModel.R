@@ -109,6 +109,7 @@ print.BimarkModel <- function(model, ...) { # {{{
 #' @param ... arguments to generateLatentHistories
 #'
 #' @examples
+#' set.seed(12)
 #' m <- bimarkSimulationModel()
 #'
 #' @return the model object updated
@@ -201,6 +202,10 @@ addObservationToModel <- function(model, M) {
 #'
 #' By overloading these functions, we expect the user not to be able to write to
 #' the typed lists `BimarkModel`.
+#'
+#' If truly needed, change the type of the object with
+#' `class(model) <- "HighjackModel"` then do whatever you want. However there is
+#' no guarantee then that the package will keep functional nor consistent.
 #'
 #' @examples
 #' m <- bimarkObservationModel(example.M)

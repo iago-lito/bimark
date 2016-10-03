@@ -2,6 +2,11 @@
 - protect object's data! Maybe by highjacking the `model$attribute <- value`
   operator
   - also override `[<-` and `[[<-`
-  > test forbidden model editing output and errors more rigourously
+  - test forbidden model editing output and errors more rigourously
 - stop throwing an error: a `cat` warning should be enough
+> adapt methods to convenience-get A and B and Omega etc from the model directly
+    > get.A(model)
+    > get.B(model)
+    > get.OmegaSLRB(model) etc.
+> Start writing a nice Readme.md
 
