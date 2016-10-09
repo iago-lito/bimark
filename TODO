@@ -4,6 +4,8 @@
 --
 
 > Packaging:
-    > Start writing a nice Readme.md
+    *> Start writing a nice Readme.md
+    *> work on the main vignette
+    > update the repo adress once it'll be set on github
     > protect `captureEvents` and `nbCaptureEvents`?
 
