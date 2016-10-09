@@ -1,9 +1,9 @@
 
-- adapt methods to convenience-get A and B and Omega etc from the model directly
-    - get.A(model)
-    - get.B(model)
-    - get.OmegaSLRB(model) etc.
-> Start writing a nice Readme.md
-> protect `captureEvents` and `nbCaptureEvents`?
-> add examples with bimarkModel object to doc.. everywhere :P
+> Get into JAGS!
+
+--
+
+> Packaging:
+    > Start writing a nice Readme.md
+    > protect `captureEvents` and `nbCaptureEvents`?
 

@@ -87,7 +87,7 @@ throw <- function(message){
 #' @param delta nbCaptureEvents-vector: capture probabilities for each capture
 #' event (or positive weights whose sum will be normalized to 1)
 #'
-#' @keywords history latent simulate generate
+#' @seealso \code{\link{seeHists}} \code{\link{observeHists}}
 #'
 #' @examples
 #' generateLatentHistories(N=20, T=5, P=rep(.1, 5), delta=c(0, 4, 4, 2, 3))
@@ -133,10 +133,8 @@ generateLatentHistories <- function(N     = 500, # {{{
 #' Each history is assigned a unique identifier according to McClintock2010
 #' (equation (3)). It is ID2Hist reverse function.
 #'
-#' @param history for T capture events, either a vector of events of length T or
-#' a matrix of n histories dim(n, T)
-#'
-#' @keywords history raw id
+#' @param history for T capture events, either an events vector of length T or
+#' a matrix of n histories \code{dim(n, T)}
 #'
 #' @examples
 #' Hist2ID(c(0, 4, 0, 1, 3))
@@ -146,10 +144,10 @@ generateLatentHistories <- function(N     = 500, # {{{
 #'                  0, 0, 0, 4, 4), 4, 5, byrow=TRUE))
 #' Hist2ID(generateLatentHistories(4, 5))
 #'
-#' @seealso ID2Hist generateLatentHistories
+#' @seealso \code{\link{ID2Hist}} \code{\link{generateLatentHistories}}
 #'
-#' @return if `history` is one history, its id. If `history` is several history,
-#' their corresponding vector of ids.
+#' @return if \code{history} is one history, its id. If \code{history} is
+#' several history, their corresponding vector of ids.
 #'
 #' @export
 
@@ -176,18 +174,17 @@ Hist2ID <- function(history){ # {{{
 #' must be positive.
 #' @param T total number of capture events to interpret the IDs with
 #'
-#' @keywords history raw id
-#'
 #' @examples
 #' Hist2ID(c(0, 4, 0, 1, 3))
 #' set.seed(6)
 #' hists <- generateLatentHistories(10)
 #' Hist2ID(hists)
 #'
-#' @seealso Hist2ID
+#' @seealso \code{\link{Hist2ID}}
 #'
-#' @return if `id` is one IDs, the corresponding raw history. If `id` is several
-#' IDs, the corresponding `dim(length(id), T)` matrix of histories.
+#' @return if \code{id} is one IDs, the corresponding raw history. If \code{id}
+#' is several IDs, the corresponding \code{dim(length(id), T)} matrix of
+#' histories.
 #'
 #' @export
 
@@ -230,14 +227,12 @@ ID2Hist <- function(id, T){ # {{{
 #' increasing order of their corresponding ID's.
 #'
 #' @note Be aware that canonical order is not well-suited for polytope analysis
-#' of the B-bloc. Instead, polytope order is recommended. See `getOmega.B`.
+#' of the B-bloc. Instead, polytope order is recommended. See
+#' \code{\link{getOmega.B}}.
 #'
-#' @param hists N raw histories stored in a dim(N, T) matrix
+#' @param hists N raw histories of T events stored in a \code{dim(N, T)} matrix
 #'
-#' @keywords histories order canonical analysis groups observable unobservable
-#' blocks
-#'
-#' @seealso isObservable
+#' @seealso \code{\link{isObservable}}
 #'
 #' @return a list of index vectors, each named item corresponding to a block of
 #' histories: "0", "S", "L", "R", "B"
@@ -323,12 +318,9 @@ orderHists <- function(hists){ # {{{
 #' the null history or histories containing no S and two sides of the
 #' individual. This function performs the check.
 #'
-#' @param history a raw history or a N,T-matrix of N histories as given by
-#' `generateLatentHistories`
+#' @inheritParams Hist2ID
 #'
-#' @keywords histories observable unobservable test
-#'
-#' @seealso orderHists
+#' @seealso \code{\link{orderHists}}
 #'
 #' @return boolean TRUE is the history can be observed, or a mask selecting the
 #' observable histories
@@ -383,15 +375,12 @@ isObservable <- function(history){ # {{{
 #'   5: okay, rule 4 stands for rule 3 if we omit zeroes, so 3 rules are enough
 #'
 #' @param latent a raw history or a N,T-matrix of N histories as given by
-#' `generateLatentHistories`
+#' \code{\link{generateLatentHistories}}
 #'
-#' @keywords histories latent observed observation observable unobservable
-#' ghosts
+#' @seealso \code{\link{isObservable}}
 #'
-#' @seealso isObservable
-#'
-#' @return an observation matrix: histories one would observe if `latent` were
-#' the latent ones.
+#' @return an observation matrix: histories one would observe if \code{latent}
+#' were the latent ones.
 #'
 #' @examples
 #' set.seed(2)
@@ -437,13 +426,11 @@ observeHist <- function(latent){ # {{{
 
 #' Convenience printing of histories to the console
 #'
-#' @param x N raw histories in a N,T-matrix or a vector of histories IDs.
+#' @param x N raw histories in a N,T-matrix or a vector of histories IDs
 #' @param T number of capture events to interpret the IDs with. If not given,
 #' the minimal T is choosen, or the actual length or the raw histories given.
 #'
-#' @keywords histories id row visualisation convenience
-#'
-#' @return NULL only formats the histories `x` to the console
+#' @return NULL only formats the histories \code{x} to the console
 #'
 #' @examples
 #' seeHist(1015)

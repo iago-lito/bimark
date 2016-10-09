@@ -3,8 +3,8 @@
 # convenience string for the scripts:
 bmclass <- "BimarkModel"
 
-#' Manipulate a simple `BimarkModel` object to generate and process bilateral
-#' data.
+#' Manipulate a simple \code{BimarkModel} object to generate and process
+#' bilateral data.
 #'
 #' This object will contain every relevant data. And they will be *consistent*
 #' at any time.. provided one do not try to set the slots by oneself: nothing is
@@ -52,8 +52,6 @@ createBimarkModel <- function() { # {{{
 } # }}}
 
 #' Print BimarkModel pseudo-object to the console
-#'
-#' @seealso createBimarkModel
 #'
 #' @examples
 #' m <- bimarkSimulationModel()
@@ -104,9 +102,9 @@ print.BimarkModel <- function(model, ...) { # {{{
 
 #' Populate model object with simulated latent data
 #'
-#' @seealso generateLatentHistories
+#' @seealso \code{\link{generateLatentHistories}}
 #'
-#' @param ... arguments to generateLatentHistories
+#' @inheritParams generateLatentHistories
 #'
 #' @examples
 #' set.seed(12)
@@ -145,15 +143,15 @@ bimarkSimulationModel <- function(N     = 500, # {{{
 #' This will also compute every little data summarizing M.. and preparing the
 #' polytope processing.
 #'
-#' @param model a virgin BimarkModel object
-#' @param M a raw observation matrix
+#' @param M a raw observation matrix as given by \code{\link{observeHist}}
 #'
 #' @return the model object updated
 #'
 #' @examples
 #' m <- bimarkObservationModel(example.M)
 #'
-#' @seealso Hist2Id compute.Frequencies compute.Omega.B compute.A compute.B orderHists
+#' @seealso Hist2Id compute.Frequencies compute.Omega.B compute.A compute.B
+#' orderHists
 #'
 #' @export
 
@@ -201,11 +199,12 @@ addObservationToModel <- function(model, M) {
 #' Protect BimarkModel pseudo-members for encapsulation
 #'
 #' By overloading these functions, we expect the user not to be able to write to
-#' the typed lists `BimarkModel`.
+#' the typed lists \code{BimarkModel}.
 #'
 #' If truly needed, change the type of the object with
-#' `class(model) <- "HighjackModel"` then do whatever you want. However there is
-#' no guarantee then that the package will keep functional nor consistent.
+#' \code{class(model) <- "HighjackModel"} then do whatever you want. However
+#' there is no guarantee then that the package will keep functional nor
+#' consistent.
 #'
 #' @examples
 #' m <- bimarkObservationModel(example.M)
@@ -316,13 +315,11 @@ warnUserEncapsulationViolation <- function(operator) {
 
 #' Get polytope matrices from a BimarkModel object
 #'
-#' see `help(compute.A)`, `help(compute.B)`
+#' See \code{\link{compute.A}}, \code{\link{compute.B}}
 #'
 #' @param model a valid BimarkModel object
 #'
-#' @return The corresponding matrix as computed by `compute.A` or `compute.B`
-#'
-#' @seealso compute.A compute.B
+#' @seealso \code{\link{compute.A}} \code{\link{compute.B}}
 #' @export
 
 get.A <- function(model) { # {{{
@@ -337,13 +334,13 @@ get.B <- function(model) {
 
 #' Get various parts of the Omega matrix
 #'
-#' See `help(compute.Omega.B)`.
+#' See \code{\link{compute.Omega.B}}.
 #'
-#' @param model a valid BimarkModel object
+#' @inheritParams get.A
 #'
 #' @return the corresponding Omega matrix
 #'
-#' @seealso compute.Omega.B
+#' @seealso \code{\link{compute.Omega.B}}
 #' @export
 
 get.Omega <- function(model) { # {{{
