@@ -8,4 +8,4 @@ NAMESPACE
 man/*
 bimark_*.tar.gz
 bimark.Rcheck/*
-
+inst/doc
