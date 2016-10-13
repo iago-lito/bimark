@@ -94,6 +94,14 @@ test_that("compute.Omega.B works", {
   actual <- compute.Omega.B(Omega.L, Omega.R)
   expected <- Omega.B # we are expecting polytope order
   expect_equal(actual, expected)
+  # test degenerated cases
+  expected <- matrix(integer(0), nrow=0, ncol=ncol(Omega.SLR))
+  actual <- compute.Omega.B(Omega.L[integer(0),], Omega.R) # empty L
+  expect_equal(actual, expected)
+  actual <- compute.Omega.B(Omega.L, Omega.R[integer(0),]) # empty R
+  expect_equal(actual, expected)
+  actual <- compute.Omega.B(Omega.L[integer(1),], Omega.R[integer(0),]) # both
+  expect_equal(actual, expected)
   })
 
 test_that("compute.A works", {

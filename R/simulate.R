@@ -73,6 +73,10 @@ throw <- function(message){
   stop(paste0("bimark: ", callingFunctionName, ": ", message), call.=FALSE)
 }
 
+# changing default behaviour of submatricing no more dropping of dimensions or
+# I'll leave you, R!
+`[` <- function(...) base::`[`(..., drop=FALSE)
+
 #' Generate latent histories
 #'
 #' Simulate a virtual population where each individual undergoes a particular,
@@ -273,8 +277,6 @@ orderHists <- function(hists){ # {{{
       blocks$MASK <- hitchHike[MASK.mask]
       hitchHike <- hitchHike[!MASK.mask]
       hists <- hists[!MASK.mask,]
-      # I hate you R will you STOP changing my variables types with no warning?!
-      if (is.null(dim(hists))) dim(hists) <- c(1, length(hists))
     }), list(MASK=gsub(".mask", "", substitute(mask)), MASK.mask=mask)))
   # }}}
 
@@ -458,7 +460,6 @@ seeHist <- function(x, T=NULL) { # {{{
     else if (T < minimal.T)
       throw(paste("Cannot interpret these histories with only", T, "events!"))
     hist <- ID2Hist(id, T)
-    if (is.null(dim(hist))) hist <- matrix(hist, nrow=1) # `hate you R!
   }
 
   # Translate it to actual history events and print it to the screen:

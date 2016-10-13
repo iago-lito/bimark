@@ -73,3 +73,12 @@ test_that("object pseudo-encapsulation works", {
 
   })
 
+test_that("One-line degenerated cases do not cause drop=TRUE bugs", {
+  set.seed(12) # find a LL = 1
+  expect_error(m <- bimarkSimulationModel(N=20, T=5), NA)
+  set.seed(10) # and a LR = 1
+  expect_error(m <- bimarkSimulationModel(N=20, T=5), NA)
+  set.seed(142) # and both
+  expect_error(m <- bimarkSimulationModel(N=20, T=5), NA)
+  })
+

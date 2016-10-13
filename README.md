@@ -9,8 +9,8 @@ two parts:
   analyis of these data based on their underlying polytope structure. Written in
   R, JAGS and C++.
 
-Althought everything has already been written and run during my past internship,
-this first release only ships the "shallow" part. This way, user may:
+Althought everything has already been written and run during my past internship
+in 2015, this first release only ships the "shallow" part. This way, user may:
 
 - assert that..  yes, I am currently working on the overall packaging on this
   code (mostly at nights and weekends).
@@ -42,6 +42,21 @@ It has been adapted to the problem of bilaterality both by McClintock *et al.*
 The solution we have found to deal with it is mostly inspired from McClintock
 and Bonner. Our improved Bayesian sampling algorithm is described in detail in
 our M2 report, 2015[^IagNOlivier2015], along with our notations.
+
+## Getting started
+
+
+Installing `bimark`, run the tests and build the documentation should be as easy
+as:
+
+    > library(devtools)
+    > install_github("iago-lito/bimark", build_vignettes=TRUE)
+    
+To generate a model based on simulated data, try:
+
+    > library(bimark)
+    > m <- bimarkSimulationModel(N=20, T=5)
+    
 
 
 [^Link2010]:

@@ -143,6 +143,7 @@ bimarkSimulationModel <- function(N     = 500, # {{{
 #' This will also compute every little data summarizing M.. and preparing the
 #' polytope processing.
 #'
+#' @param model a virgin BimarkModel object
 #' @param M a raw observation matrix as given by \code{\link{observeHist}}
 #'
 #' @return the model object updated

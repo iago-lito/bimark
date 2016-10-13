@@ -35,7 +35,7 @@
 compute.Frequencies <- function(M){ # {{{
 
   counts <- as.data.frame(table(Hist2ID(M)))
-  counts[,1] <- as.integer(as.character(counts[,1]))
+  counts[[1]] <- as.integer(as.character(counts[[1]]))
   names(counts) <- c('id', 'F')
   # Note that, here, `F` differs from Bonners' "f" since it only contains "f"
   # positive elements. Much ligther.
