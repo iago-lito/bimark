@@ -181,7 +181,9 @@ test_that("seeHist does not throw errors", {
                      " L R : 8 \n",
                      " L B : 9 \n",
                      " L S : 10 ")
+  # given as integers OR characters
   expect_output(seeHist(1:10), expected)
+  expect_output(seeHist(as.character(1:10)), expected)
   # with raw histories:
   hists <- generateLatentHistories(N, T, P, delta)
   expected <- paste0(" 0 0 0 0 S : 5 \n",

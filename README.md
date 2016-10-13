@@ -21,7 +21,7 @@ in 2015, this first release only ships the "shallow" part. This way, user may:
     - provide feature requests
 
 In a nutshell, this is an early stage of the project: visit the repo at
-[github.repo](github.repo).
+<http://github.com/iago-lito/bimark/>.
 
 ## What is Bimark for?
 
@@ -43,22 +43,6 @@ The solution we have found to deal with it is mostly inspired from McClintock
 and Bonner. Our improved Bayesian sampling algorithm is described in detail in
 our M2 report, 2015[^IagNOlivier2015], along with our notations.
 
-## Getting started
-
-
-Installing `bimark`, run the tests and build the documentation should be as easy
-as:
-
-    > library(devtools)
-    > install_github("iago-lito/bimark", build_vignettes=TRUE)
-    
-To generate a model based on simulated data, try:
-
-    > library(bimark)
-    > m <- bimarkSimulationModel(N=20, T=5)
-    
-
-
 [^Link2010]:
     Link *et al.* 2010:
     [doi:10.1111/j.1541-0420.2009.01244.x](https://www.ncbi.nlm.nih.gov/pubmed/19397581)  
@@ -70,4 +54,58 @@ To generate a model based on simulated data, try:
     [doi:10.1111/biom.12045](http://onlinelibrary.wiley.com/doi/10.1111/biom.12045/abstract)  
 [^IagNOlivier2015]:
     soon on [HAL](https://hal.archives-ouvertes.fr/)?
+
+## Getting started
+
+
+Installing `bimark`, running the tests and building the documentation should be
+as easy as:
+
+    > library(devtools)
+    > install_github("iago-lito/bimark", build_vignettes=TRUE)
+    
+To generate a model based on simulated data, try:
+
+    > library(bimark)
+    > m <- bimarkSimulationModel(N=20, T=5)
+
+The bimark model object is just a list. Access data with:
+
+    > m$n               # number of capture histories actually observed
+    > m$LR              # number of observed right-histories
+    > m$iOmega          # ids of all histories relevant to these data
+    > seeHist(m$iOmega) # visualize histories and their ids
+
+To generate a model based on actual observation data, use:
+
+    > myData <- example.M
+    > m <- bimarkObservationModel(myData)
+    > print(m) # unknown number of individuals, since sides haven't been matched
+    
+To retrieve matrices information from the model, feed dedicated methods with it:
+
+    > get.Omega.B(m) # all unobservable histories that may underlie these data
+    > get.A(m)       # observation matrix sorted in polytope order
+    > get.B(m)       # kernel of A matrix generating the polytope
+
+Get information with:
+
+    > ?get.Omega.B
+    > ?get.A
+    
+## TroubleShooting
+
+If anything goes wrong (and things *will* go wrong), please file an
+issue report on [the repo](https://github.com/iago-lito/bimark/issues>).  
+We're also pleased to read your feature requests.
+
+## Contributors
+
+Iago-lito (<https://github.com/iago-lito>)  
+Dr. Olivier Gimenez, (<olivier.gimenez@cefe.cnrs.fr>)
+
+## License
+
+This package is licensed under the [GPL v3
+license](http://www.gnu.org/copyleft/gpl.html). &copy; 2016 Bimark contributors
 

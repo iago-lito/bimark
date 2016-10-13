@@ -4,6 +4,7 @@
 --
 
 > Packaging:
+    > reorganize the doc so that the help is mostly in the porcelain functions
     *> Start writing a nice Readme.md
     *> work on the main vignette
     > update the repo adress once it'll be set on github

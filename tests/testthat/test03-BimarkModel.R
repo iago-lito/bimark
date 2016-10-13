@@ -82,8 +82,9 @@ test_that("One-line degenerated cases do not cause drop=TRUE bugs", {
   expect_error(m <- bimarkSimulationModel(N=20, T=5), NA)
   })
 
-test_that("", {
-  set.seed(12) # find a LL = 1
-  m <- bimarkSimulationModel(N=50, T=20)
+test_that("Package works for big values of T", {
+  # no more crushing integers ceiling, cf commit 7634825
+  set.seed(12)
+  m <- bimarkSimulationModel(N=1e3, T=50)
   })
 

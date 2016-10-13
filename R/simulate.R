@@ -467,7 +467,7 @@ seeHist <- function(x, T=NULL) { # {{{
   }
   else { # interpreted as a vector of IDs
     id <- x
-    minimal.T <- max(1, ceiling(log(max(id), nbCaptureEvents)))
+    minimal.T <- max(gmp::sizeinbase(gmp::as.bigz(id), b=nbCaptureEvents))
     if (is.null(T))
       T <- minimal.T
     else if (T < minimal.T)
