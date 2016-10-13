@@ -137,6 +137,9 @@ generateLatentHistories <- function(N     = 500, # {{{
 #' Each history is assigned a unique identifier according to McClintock2010
 #' (equation (3)). It is ID2Hist reverse function.
 #'
+#' The ids are integers, too big to be handled by R's `int` primitive type. So
+#' we use strings to represent them.
+#'
 #' @param history for T capture events, either an events vector of length T or
 #' a matrix of n histories \code{dim(n, T)}
 #'
@@ -151,7 +154,8 @@ generateLatentHistories <- function(N     = 500, # {{{
 #' @seealso \code{\link{ID2Hist}} \code{\link{generateLatentHistories}}
 #'
 #' @return if \code{history} is one history, its id. If \code{history} is
-#' several history, their corresponding vector of ids.
+#' several history, their corresponding vector of ids. They are (potentially
+#' long) integers represented as strings.
 #'
 #' @export
 
@@ -164,7 +168,13 @@ Hist2ID <- function(history){ # {{{
   # Plain arithmetics of history id: translate an integer from base
   # `nbCaptureEvents` into base 10
   T <- length(history)
-  return(as.integer(1 + sum(history * nbCaptureEvents^((T-1):0))))
+  if (T == 1)
+    return(as.character(history + 1))
+  # use arbitrary long integers not to crush `int`'s ceiling!
+  res <- gmp::as.bigz(1)
+  for (i in 1:length(history))
+    res <- res + history[i] * (nbCaptureEvents ^ (nbCaptureEvents - i))
+  return(as.character(res))
 
 } # }}}
 
@@ -174,8 +184,8 @@ Hist2ID <- function(history){ # {{{
 #' Each positive integer can be interpreted as one capture history according to
 #' McClintock2010 (equation (3)). It is Hist2ID reverse function.
 #'
-#' @param id ID of a history, either an integer or a vector of integers. An ID
-#' must be positive.
+#' @param id ID of a history, either an string or a vector of string. An ID
+#' must be a positive integer.
 #' @param T total number of capture events to interpret the IDs with
 #'
 #' @examples
@@ -203,13 +213,13 @@ ID2Hist <- function(id, T){ # {{{
 
   # Plain arithmetics: translate an integer from base 10 to base
   # `nbCaptureEvents`
-  res <- rep(NA, T)
-  id  <- id - 1
-  divisor <- nbCaptureEvents^(T - 1:T)
-  for (i in 1:T){
-    res[i]  <- id %/% divisor[i]
-    id      <- id - res[i] * divisor[i]
-  }
+  # Thank you gmp for arbitrary long integer manipulation!
+  res <- as.character(gmp::as.bigz(id) - 1, b=nbCaptureEvents)
+  res <- captureEvents[as.integer(strsplit(res, '')[[1]]) + 1]
+  # adjust the size to desired T
+  lr <- length(res)
+  if (lr < T)
+    res <- c(rep(captureEvents['0'], T - lr), res)
 
   return(res)
 
@@ -258,6 +268,9 @@ orderHists <- function(hists){ # {{{
 
   # First sort by ID's: # {{{
   ids <- Hist2ID(hists)
+  # Watch out! sort them as big integers, so they need to be padded with zeroes!
+  ml <- max(vapply(ids, nchar, 1))
+  ids <- vapply(ids, function(id) paste0(strrep('0', ml - nchar(id)), id), 't')
   o <- order(ids)
   hists     <- hists[o,]
   hitchHike <- hitchHike[o]

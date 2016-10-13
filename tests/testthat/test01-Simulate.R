@@ -6,7 +6,6 @@ N <- 10                        # true population size
 P <- rep(.1, T)                # probabilities of capture on each occasion
 delta <- c(0., 4., 4., 2., 3.) # probabilities of capture events
 
-
 test_that("generateLatentHistories works", {
   set.seed(4)
   expected <- structure( # got from `dump` once it worked :P
@@ -30,8 +29,8 @@ test_that("generateLatentHistories throws errors", {
   })
 
 test_that("Hist2ID works with single histories", {
-  expect_equal(Hist2ID(c(0, 0, 0, 0, 0)), 1)
-  expect_equal(Hist2ID(c(0, 4, 0, 1, 3)), 509)
+  expect_equal(Hist2ID(c(0, 0, 0, 0, 0)), "1")
+  expect_equal(Hist2ID(c(0, 4, 0, 1, 3)), "509")
   })
 
 test_that("Hist2ID works with matrices", {
@@ -39,13 +38,17 @@ test_that("Hist2ID works with matrices", {
                              1, 1, 0, 2, 0,
                              0, 3, 4, 0, 0,
                              0, 0, 0, 4, 4), 4, 5, byrow=TRUE))
-  expected <- c(509, 761, 476, 25)
+  expected <- c("509", "761", "476", "25")
   expect_equal(expected, actual)
   })
 
 test_that("ID2Hist works with single IDs", {
-  expect_equal(c(0, 0, 0, 0, 0), ID2Hist(1, T))
-  expect_equal(c(0, 4, 0, 1, 3), ID2Hist(509, T))
+  actual <- ID2Hist("1", T)
+  expected <- captureEvents[c('0', '0', '0', '0', '0')]
+  expect_equal(actual, expected)
+  actual <- ID2Hist("509", T)
+  expected <- captureEvents[c('0', 'S', '0', 'L', 'B')]
+  expect_equal(actual, expected)
   })
 
 test_that("ID2Hist works with several IDs", {
@@ -68,9 +71,10 @@ test_that("Hist2ID and ID2Hist are each other's reversion" , {
   expect_equal(histories, ID2Hist(Hist2ID(histories), T))
   # Testing ID -> hist -> ID
   # aim for a balanced set of ids:
+  # (hypothesis: R integers are long enough to handle this particular test ;)
   min <- 1
-  max <- Hist2ID(rep(max(captureEvents), T))
-  ids <- floor(runif(N) * max) + min
+  max <- as.integer(Hist2ID(rep(max(captureEvents), T)))
+  ids <- as.character(floor(runif(N) * max) + min)
   expect_equal(ids, Hist2ID(ID2Hist(ids, T)))
   })
 

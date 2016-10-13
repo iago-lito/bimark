@@ -79,7 +79,7 @@ B <- Matrix::Matrix(matrix(B, ncol=LL * LR, byrow=TRUE))
 
 
 test_that("compute.Frequencies works", {
-  expected <- data.frame(id=Hist2ID(Omega.SLR), F=F)
+  expected <- data.frame(id=Hist2ID(Omega.SLR), F=F, stringsAsFactors=FALSE)
   actual <- compute.Frequencies(M)
   # canonic order to compare
   oa <- unlist(orderHists(ID2Hist(actual$id, T)))

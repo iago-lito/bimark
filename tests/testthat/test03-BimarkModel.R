@@ -82,3 +82,8 @@ test_that("One-line degenerated cases do not cause drop=TRUE bugs", {
   expect_error(m <- bimarkSimulationModel(N=20, T=5), NA)
   })
 
+test_that("", {
+  set.seed(12) # find a LL = 1
+  m <- bimarkSimulationModel(N=50, T=20)
+  })
+

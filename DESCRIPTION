@@ -13,13 +13,13 @@ Depends:
     R (>= 3.2.3)
 License: GPL-3
 imports: gtools(>= 3.5.0),
-    plyr  (>= 1.8.3),
     Matrix(>= 1.2-3),
     MASS  (>= 3-45),
     Rcpp  (>= 0.12.3),
     coda  (>= 0.18-1),
     rjags (>= 4-6),
-    plyr  (>= 1.8.4)
+    plyr  (>= 1.8.4),
+    gmp   (>= 0.5-12)
 RoxygenNote: 5.0.1
 LazyData: true
 Suggests: testthat, plyr,
