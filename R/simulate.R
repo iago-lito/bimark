@@ -1,4 +1,4 @@
-# Here is R script to simulate bilateral data:
+# Here is R script to simulate and manipulate bilateral data:
 
 # Defining events of capture: # {{{
 
@@ -12,7 +12,7 @@
 #'    S : \tab simultaneous capture and match \tab : 4\cr
 #'  }
 #'
-#' @seealso nbCaptureEvents
+#' @seealso \code{\link{nbCaptureEvents}}
 #'
 #' @export
 
@@ -26,17 +26,25 @@ captureEvents <- c(
 
 #' Number of capture events
 #'
-#' This is just defined as length(captureEvents)
+#' This is just defined as \code{length(\link{captureEvents})}
 #'
-#' @seealso captureEvents
+#' @seealso \code{\link{captureEvents}}
 #'
 #' @export
 
 nbCaptureEvents <- length(captureEvents)
 
-#' One small, convenient example of an observation matrix
+#' One small example of an observation matrix.
 #'
-#' Drawn from Bonnici's M2 report.
+#' The observation matrix M has n lines and T columns, with n being the number
+#' of records and T the number of capture histories. Events are coded by an
+#' integer accordingly to \code{\link{captureEvents}}.
+#'
+#' This example matrix is drawn from Bonnici's M2 report.
+#'
+#' @examples
+#' print(example.M)
+#' seeHist(example.M)
 #'
 #' @export
 
@@ -66,14 +74,14 @@ example.M <- matrix(captureEvents[
 
 # }}}
 
-# custom error thrower:
+# custom error thrower for the package.
 throw <- function(message){
   call <- sys.call(-1)
   callingFunctionName <- as.character(call[1])
   stop(paste0("bimark: ", callingFunctionName, ": ", message), call.=FALSE)
 }
 
-# changing default behaviour of submatricing no more dropping of dimensions or
+# changing default behaviour of submatricing: no more dropping of dimensions or
 # I'll leave you, R!
 `[` <- function(...) base::`[`(..., drop=FALSE)
 
@@ -82,23 +90,22 @@ throw <- function(message){
 #' Simulate a virtual population where each individual undergoes a particular,
 #' latent capture history.
 #'
-#' @usage generateLatentHistories(N, T, P, delta)
-#'
 #' @param N integer number of simulated individual
 #' @param T integer number of capture occasions
-#' @param P N-vector: capture probabilities on each occasion (one value for
-#' constant probability constant)
-#' @param delta nbCaptureEvents-vector: capture probabilities for each capture
-#' event (or positive weights whose sum will be normalized to 1)
+#' @param P \code{N}-vector: capture probabilities on each occasion (one value
+#' for constant probability constant)
+#' @param delta \code{\link{nbCaptureEvents}}-vector: capture probabilities for
+#' each capture event (or positive weights whose sum will be normalized to 1)
 #'
 #' @seealso \code{\link{seeHists}} \code{\link{observeHists}}
-#'
-#' @examples
-#' generateLatentHistories(N=20, T=5, P=rep(.1, 5), delta=c(0, 4, 4, 2, 3))
 #'
 #' @return a matrix of capture events: one row per individual, one column per
 #' capture occasion: each row is an individual capture history. These are the
 #' latent histories.
+#'
+#' @examples
+#' set.seed(12)
+#' generateLatentHistories(N=20, T=5, P=rep(.1, 5), delta=c(0, 4, 4, 2, 3))
 #'
 #' @export
 
@@ -135,13 +142,19 @@ generateLatentHistories <- function(N     = 500, # {{{
 #' Compute ID of a raw history
 #'
 #' Each history is assigned a unique identifier according to McClintock2010
-#' (equation (3)). It is ID2Hist reverse function.
+#' (equation (3)). It is \code{\link{ID2Hist}} reverse function.
 #'
 #' The ids are integers, too big to be handled by R's `int` primitive type. So
 #' we use strings to represent them.
 #'
 #' @param history for T capture events, either an events vector of length T or
 #' a matrix of n histories \code{dim(n, T)}
+#'
+#' @seealso \code{\link{ID2Hist}} \code{\link{generateLatentHistories}}
+#'
+#' @return if \code{history} is one history, its id. If \code{history} is
+#' several history, their corresponding vector of ids. They are (potentially
+#' long) integers represented as strings.
 #'
 #' @examples
 #' Hist2ID(c(0, 4, 0, 1, 3))
@@ -150,12 +163,6 @@ generateLatentHistories <- function(N     = 500, # {{{
 #'                  0, 3, 4, 0, 0,
 #'                  0, 0, 0, 4, 4), 4, 5, byrow=TRUE))
 #' Hist2ID(generateLatentHistories(4, 5))
-#'
-#' @seealso \code{\link{ID2Hist}} \code{\link{generateLatentHistories}}
-#'
-#' @return if \code{history} is one history, its id. If \code{history} is
-#' several history, their corresponding vector of ids. They are (potentially
-#' long) integers represented as strings.
 #'
 #' @export
 
@@ -182,23 +189,22 @@ Hist2ID <- function(history){ # {{{
 #' Get a raw history from its ID
 #'
 #' Each positive integer can be interpreted as one capture history according to
-#' McClintock2010 (equation (3)). It is Hist2ID reverse function.
+#' McClintock2010 (equation (3)). It is \code{\link{Hist2ID}} reverse function.
 #'
 #' @param id ID of a history, either an string or a vector of string. An ID
 #' must be a positive integer.
 #' @param T total number of capture events to interpret the IDs with
+#'
+#' @seealso \code{\link{Hist2ID}}
+#'
+#' @return if \code{id} is one ID, the corresponding raw history. If \code{id}
+#' is several IDs, the corresponding matrix of histories.
 #'
 #' @examples
 #' Hist2ID(c(0, 4, 0, 1, 3))
 #' set.seed(6)
 #' hists <- generateLatentHistories(10)
 #' Hist2ID(hists)
-#'
-#' @seealso \code{\link{Hist2ID}}
-#'
-#' @return if \code{id} is one IDs, the corresponding raw history. If \code{id}
-#' is several IDs, the corresponding \code{dim(length(id), T)} matrix of
-#' histories.
 #'
 #' @export
 
@@ -226,25 +232,27 @@ ID2Hist <- function(id, T){ # {{{
 } # }}}
 
 
-#' Get canonical order of a set of histories
+#' Get canonical order for a set of histories
 #'
 #' Canonical order will facilitate managing and analysing the histories.
 #' In particular, it will make it easy to derive the polytope associated with a
 #' set of histories.
-#' Order as follow into 4 blocks:
-#'    0 - 0-history  : Only 0s
-#'    1 - S-histories: Simultaneous histories (at least one S)
-#'    2 - L-histories: Left-only histories (only 0 and R)
-#'    3 - R-histories: Right-only histories (only 0 and L)
-#'    4 - B-histories: Unobservable histories that generate the previous two
+#' Order as follow into 4 blocks:\itemize{
+#'    \item{0 - 0-history  : Only 0s}
+#'    \item{1 - S-histories: Simultaneous histories (at least one S)}
+#'    \item{2 - L-histories: Left-only histories (only 0 and R)}
+#'    \item{3 - R-histories: Right-only histories (only 0 and L)}
+#'    \item{4 - B-histories: Unobservable histories that generate the previous
+#'    two}
+#'    }
 #' As far as histories within blocks are concerned, they will be ordered in
 #' increasing order of their corresponding ID's.
 #'
 #' @note Be aware that canonical order is not well-suited for polytope analysis
 #' of the B-bloc. Instead, polytope order is recommended. See
-#' \code{\link{getOmega.B}}.
+#' \code{\link{get.Omega.B}}.
 #'
-#' @param hists N raw histories of T events stored in a \code{dim(N, T)} matrix
+#' @param hists a histories matrix (see \code{\link{example.M}})
 #'
 #' @seealso \code{\link{isObservable}}
 #'
@@ -337,8 +345,8 @@ orderHists <- function(hists){ # {{{
 #'
 #' @seealso \code{\link{orderHists}}
 #'
-#' @return boolean TRUE is the history can be observed, or a mask selecting the
-#' observable histories
+#' @return boolean \code{TRUE} if the history can be observed, or a boolean mask
+#' selecting the observable histories only
 #'
 #' @examples
 #' isObservable(captureEvents[c('R', 'S', 'S', 'R', 'S')])
@@ -380,16 +388,18 @@ isObservable <- function(history){ # {{{
 #'
 #' Latent, actual histories undergone by the individuals may not be the same as
 #' the ones we observe, because we may miss match informations.
-#' Here are the rules, inspired from Brett2013 and Simon2010:
-#'   1: every zero history is removed (unobserved)
-#'   2: every history containing S is kept (two sides matched)
-#'   3: every history containing only R's or only L's is kept (observable)
-#'   4: every remaining history generates 2 ghosts:
-#'       - a L-ghost where R's become 0's and B's become L's
-#'       - a R-ghost where L's become 0's and B's become R's
-#'   5: okay, rule 4 stands for rule 3 if we omit zeroes, so 3 rules are enough
+#' Here are the rules, inspired from Brett2013 and Simon2010:\itemize{
+#'   \item{1: every zero history is removed (unobserved)}
+#'   \item{2: every history containing S is kept (two sides matched)}
+#'   \item{3: every history containing only R's or only L's is kept
+#'   (observable)}
+#'   \item{4: every remaining history generates 2 ghosts:\itemize{
+#'       \item{a L-ghost where R's become 0's and B's become L's}
+#'       \item{a R-ghost where L's become 0's and B's become R's}}}
+#'   \item{5: okay, rule 4 stands for rule 3 if we omit zeroes, so 3 rules are
+#'   enough}}
 #'
-#' @param latent a raw history or a N,T-matrix of N histories as given by
+#' @param latent one raw history or a matrix of histories as given by
 #' \code{\link{generateLatentHistories}}
 #'
 #' @seealso \code{\link{isObservable}}
@@ -441,11 +451,13 @@ observeHist <- function(latent){ # {{{
 
 #' Convenience printing of histories to the console
 #'
-#' @param x N raw histories in a N,T-matrix or a vector of histories IDs
+#' @param x a matrix of raw histories or a vector of histories IDs
 #' @param T number of capture events to interpret the IDs with. If not given,
 #' the minimal T is choosen, or the actual length or the raw histories given.
 #'
-#' @return NULL only formats the histories \code{x} to the console
+#' @return \code{NULL} only formats the histories \code{x} to the console
+#'
+#' @seealso \code{\link{ID2Hist}} \code{\link{Hist2ID}}
 #'
 #' @examples
 #' seeHist(1015)

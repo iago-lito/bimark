@@ -6,31 +6,45 @@ bmclass <- "BimarkModel"
 #' Manipulate a simple \code{BimarkModel} object to generate and process
 #' bilateral data.
 #'
-#' This object will contain every relevant data. And they will be *consistent*
-#' at any time.. provided one do not try to set the slots by oneself: nothing is
-#' protected!
+#' This object will contain every relevant data. And they will be consistent
+#' at any time.
 #'
 #' R's S4 object opportunities sound nice but.. terrible to use. Furthermore, we
-#' do not need such a sophisticated object architecture. As an alternative, we
-#' are falling back on this plain named-and-typed list which will gather
-#' information as the analysis goes by. Items are simili-slots. Their values are
-#' set to NULL if they are not defined.
+#' do not need such a sophisticated object architecture yet. As an alternative,
+#' we are falling back on this plain named-and-typed list which will gather
+#' information as the analysis goes by. Items are used as pseudo-slots. Their
+#' values are set to NULL if they are not defined.
 #'
 #' @slot L raw latent histories matrix if available (available if simulated)
 #' @slot N number of latent histories: actual number of individuals!
 #' @slot T number of capture occasions
-#' @slot M raw observation matrix
+#' @slot M raw observation matrix (see \code{\link{example.M}})
 #' @slot n number of observed histories (side and/or individuals)
-#' @slot F frequencies of observed histories in canonical order
+#' @slot F frequencies of observed histories in canonical order (see
+#' \code{\link{compute.Frequencies}})
 #' @slot LS number of S-histories observed
 #' @slot LL number of L-histories observed
 #' @slot LR number of R-histories observed
-#' @slot iOmega latent histories matrix (stored as ids in canonical order)
+#' @slot iOmega latent histories matrix (stored as ids in canonical order) (see
+#' \code{\link{get.Omega.B}})
 #'
-#' @seealso bimarkSimulationModel bimarkObservationModel print.BimarkModel
+#' @seealso \code{\link{bimarkSimulationModel}}
+#' \code{\link{bimarkObservationModel}} \code{\link{print.BimarkModel}}
+#' \code{\link{BimarkModelEncapsulation}}
+#'
+#' @examples
+#' model <- bimarkSimulationModel()
+#'
+#' class(model)
+#' print(model)
+#' model$n
+#' model$F
+#' model$iOmega
+#'
+#' model$n <- 12 # do not try editing these members
 #'
 #' @docType package
-#' @name bimark
+#' @name BimarkModel
 NULL
 
 # Utility method to create an empty model object
@@ -52,6 +66,8 @@ createBimarkModel <- function() { # {{{
 } # }}}
 
 #' Print BimarkModel pseudo-object to the console
+#'
+#' @seealso \code{\link{BimarkModel}}
 #'
 #' @examples
 #' m <- bimarkSimulationModel()
@@ -100,17 +116,20 @@ print.BimarkModel <- function(model, ...) { # {{{
 
 } # }}}
 
-#' Populate model object with simulated latent data
+#' Create a bimark model object based on simulated data
 #'
-#' @seealso \code{\link{generateLatentHistories}}
+#' This model will be full because latent histories are known. About the actual
+#' returned R object, see \code{help(BimarkModel)}.
+#'
+#' @seealso \code{\link{generateLatentHistories}} \code{\link{BimarkModel}}
 #'
 #' @inheritParams generateLatentHistories
+#'
+#' @return a \code{\link{BimarkModel}} object
 #'
 #' @examples
 #' set.seed(12)
 #' m <- bimarkSimulationModel()
-#'
-#' @return the model object updated
 #'
 #' @export
 
@@ -138,21 +157,20 @@ bimarkSimulationModel <- function(N     = 500, # {{{
 
 } # }}}
 
-#' Populate model with observed raw histories matrix M
+#' Create a birmark model object based on observed data
 #'
-#' This will also compute every little data summarizing M.. and preparing the
-#' polytope processing.
+#' This model will not be full because latent histories are unknown. Abouth the
+#' actual returned R object, see \code{help(BimarkModel)}.
 #'
-#' @param model a virgin BimarkModel object
-#' @param M a raw observation matrix as given by \code{\link{observeHist}}
+#' @param M a raw observation matrix formatted as \code{\link{example.M}}
 #'
-#' @return the model object updated
+#' @return a \code{\link{BimarkModel}} object
+#'
+#' @seealso \code{\link{example.M}} \code{\link{captureEvents}}
+#' \code{\link{BimarkModel}}
 #'
 #' @examples
 #' m <- bimarkObservationModel(example.M)
-#'
-#' @seealso Hist2Id compute.Frequencies compute.Omega.B compute.A compute.B
-#' orderHists
 #'
 #' @export
 
@@ -200,12 +218,14 @@ addObservationToModel <- function(model, M) {
 #' Protect BimarkModel pseudo-members for encapsulation
 #'
 #' By overloading these functions, we expect the user not to be able to write to
-#' the typed lists \code{BimarkModel}.
+#' the typed lists \code{\link{BimarkModel}}.
 #'
 #' If truly needed, change the type of the object with
 #' \code{class(model) <- "HighjackModel"} then do whatever you want. However
 #' there is no guarantee then that the package will keep functional nor
 #' consistent.
+#'
+#' @seealso \code{\link{BimarkModel}}
 #'
 #' @examples
 #' m <- bimarkObservationModel(example.M)
@@ -314,34 +334,120 @@ warnUserEncapsulationViolation <- function(operator) {
       "See `help(BimarkModelEncapsulation)`.\n", sep='')
 } # }}}
 
-#' Get polytope matrices from a BimarkModel object
+#' Generate A observation process matrix from a BimarkModel object
 #'
-#' See \code{\link{compute.A}}, \code{\link{compute.B}}
+#' This version of the A matrix, as in Bonner2013, only takes into account the
+#' histories actually observed in the data, and the only latent histories that
+#' could have generated them. Each latent history (in rows) generates the
+#' observed histories corresponding to the columns in which they contain a 1.
+#' Thanks to polytope ordering, its generation is really simple since its
+#' pattern only depends on the number of L-histories (LL) and R-histories (LR).
+#' Here is the pattern:\preformatted{
+#'       ______L_L_R_R_R-observable_and_ghosts___________________
+#'        a L  1 0 0 0 0 L-block |
+#'        b_L__0_1_0_0_0_________|
+#'        1 R  0 0 1 0 0         | Identity
+#'        2 R  0 0 0 1 0 R-block |
+#'  A:    3_R__0_0_0_0_1_________|_______________________________
+#'       a1 B  1 0 1 0 0         |
+#'       a2 B  1 0 0 1 0         |
+#'       a3 B  1 0 0 0 1 B-block | Combinations in polytope order
+#'       b1 B  0 1 1 0 0         |
+#'       b2 B  0 1 0 1 0         |
+#'       b3_B__0_1_0_0_1_________|_______________________________}
+#'
+#' The matrix A is actually not directly useful for JAGS because the polytope is
+#' better described by its kernel B.
 #'
 #' @param model a valid BimarkModel object
 #'
-#' @seealso \code{\link{compute.A}} \code{\link{compute.B}}
+#' @return the observation processs matrix A as a
+#' \code{\link[Matrix]{sparseMatrix}} : a LM x LU matrix with ones and zeroes,
+#' each row corresponding to a latent history sorted in polytope order, each
+#' column corresponding to an observable history sorded in polytope (or
+#' "canonical") order.
+#'
+#' @seealso \code{\link{get.B}} \code{\link{compute.A}}
 #' @export
 
-get.A <- function(model) { # {{{
+get.A <- function(model) {
   return(compute.A(model$LL, model$LR))
 }
 
-#' @rdname get.A
+#' Generate B matrix, nullspace of t(A), from a BimarkModel object
+#'
+#' The polytope is directly described by a kernel of the observation process
+#' matrix A (more exactly t(A)). Just like A, its pattern is quite easy-to-grasp
+#' once the histories has been sorted in polytope order. So it is easy to
+#' generate and it only depends on the number of L-histories (LL) and of
+#' R-histories (LR). Here is the pattern:\preformatted{
+#'       ______B_B_B_B_B_B-latent_histories______________________
+#'        a L  - - - 0 0 0 L-block |
+#'        b_L__0_0_0_-_-_-_________|
+#'        1 R  - 0 0 - 0 0         | '-' are minus ones -1's
+#'        2 R  0 - 0 0 - 0 R-block |
+#'  B:    3_R__0_0_-_0_0_-_________|_______________________________
+#'       a1 B  + 0 0 0 0 0         |
+#'       a2 B  0 + 0 0 0 0         |
+#'       a3 B  0 0 + 0 0 0 B-block | Identity : '+' are ones 1's
+#'       b1 B  0 0 0 + 0 0         |
+#'       b2 B  0 0 0 0 + 0         |
+#'       b3_B__0_0_0_0_0_+_________|_______________________________}
+#'
+#
+#' @inheritParams get.A
+#'
+#' @return the polytope matrix B as a \code{\link[Matrix]{sparseMatrix}} : a LM
+#' x LB matrix with ones, zeroes and minus ones, each row corresponding to a
+#' latent history sorted in polytope order, each column corresponding to an
+#' unobservable B-history sorded in polytope order.
+#'
+#' @seealso \code{\link{get.A}} \code{\link{compute.B}}
 #' @export
+
 get.B <- function(model) {
   return(compute.B(model$LL, model$LR))
-} # }}}
+}
 
 #' Get various parts of the Omega matrix
 #'
-#' See \code{\link{compute.Omega.B}}.
+#' \code{get.Omega.B} function computes all possible latent, unobservable
+#' histories (aka B-histories) which may have generated the given letf- and
+#' right-histories (L- and R-histories). In a nutshell, it generates Omega.B
+#' from Omega.L and Omega.R. Consider it as a kind of reversed
+#' \code{\link{observeHist}}. Omega.B is sorted with polytope order.
+#'
+#' Each B-history comes from the combination of one L- and one R-history. Here
+#' are the calculation rules for each couple of simultaneous observed events:
+#'     \itemize{
+#'     \item{Rule 1: }{observed 0 and 0 together may come from a latent 0}
+#'     \item{Rule 2: }{observed 0 and L together may come from a latent L}
+#'     \item{Rule 3: }{observed 0 and R together may come from a latent R}
+#'     \item{Rule 4: }{observed L and R together may come from a latent B}
+#'     }
+#'
+#' Polytope order for B-histories is the nested order of canonical R-order
+#' within canonical L-order, as follows: \preformatted{
+#'       |          |  S - no bilateral ambiguity
+#'       | Omega.S  |  S - no bilateral ambiguity
+#'       |         |   L - 1 left side ambiguous history
+#'       | Omega.L |   L - 2 left side ambiguous history
+#'       |          |  R - 1 right side ambiguous history
+#'       | Omega.R  |  R - 2 right side ambiguous history
+#' Omega |          |  R - 3 right side ambiguous history
+#'       |         |   B - generating L1 and R1
+#'       |         |   B - generating L1 and R2
+#'       | Omega.B |   B - generating L1 and R3
+#'       |         |   B - generating L2 and R1
+#'       |         |   B - generating L2 and R2
+#'       |         |   B - generating L2 and R3}
+#'
 #'
 #' @inheritParams get.A
 #'
 #' @return the corresponding Omega matrix
 #'
-#' @seealso \code{\link{compute.Omega.B}}
+#' @seealso \code{\link{orderHists}} \code{\link{compute.Omega.B}}
 #' @export
 
 get.Omega <- function(model) { # {{{

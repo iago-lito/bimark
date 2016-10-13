@@ -90,13 +90,14 @@ To retrieve matrices information from the model, feed dedicated methods with it:
 
 Get information with:
 
+    > ?bimarkSimulationModel
     > ?get.Omega.B
     > ?get.A
     
 ## TroubleShooting
 
 If anything goes wrong (and things *will* go wrong), please file an
-issue report on [the repo](https://github.com/iago-lito/bimark/issues>).  
+issue report on [the repo](https://github.com/iago-lito/bimark/issues).  
 We're also pleased to read your feature requests.
 
 ## Contributors

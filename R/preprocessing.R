@@ -1,20 +1,19 @@
-# Here is R script to preprocess bilateral data
-# Feed it with observation matrices as given by `observeHist`
+# Here are R functions to preprocess bilateral data
 
-#' Get frequency counts from raws histories matrix
+#' Get frequency counts from raw histories matrix
 #'
 #' The raw history matrix (like the observation matrix M or the latent histories
-#' matrix) stacks every history, with one line per side or individual. The
+#' matrix L) stacks every history, with one line per side or individual. The
 #' frequency counts sums it up by the number of times each history has occured.
-#' This is useful to get F observed counts from the observation matrix M, or to
+#' This is useful to get F: observed counts from the observation matrix M, or to
 #' get the latent histories counts X from the latent simulated histories.
 #'
-#' @seealso observeHist Hist2ID
+#' @seealso \code{\link{observeHist}} \code{\link{Hist2ID}}
 #'
 #' @inheritParams observeHist
 #'
-#' @return a data.frame with two fields: \code{id} are observed histories IDs,
-#' and \code{F} with the corresponding observed counts
+#' @return a \code{data.frame} with two fields: \code{id} are observed histories
+#' IDs, and \code{F} with the corresponding observed counts
 #'
 #' @examples
 #' # on toy example
@@ -47,41 +46,12 @@ compute.Frequencies <- function(M){ # {{{
 
 #' Build B-histories from L- and R-histories
 #'
-#' This function computes all possible latent, unobservable histories (aka
-#' B-histories) which may have generated the given letf- and right-histories (L-
-#' and R-histories). In a nutshell, it generates Omega.B from Omega.L and
-#' Omega.R. Consider it as a kind of reversed \code{\link{observeHist}}. Omega.B
-#' is sorted with polytope order.
-#'
-#' Each B-history comes from the combination of one L- and one R-history. Here
-#' are the rules for each couple of simultaneous observed events:
-#'     \itemize{
-#'     \item{Rule 1: }{observed 0 and 0 together may come from a latent 0}
-#'     \item{Rule 2: }{observed 0 and L together may come from a latent L}
-#'     \item{Rule 3: }{observed 0 and R together may come from a latent R}
-#'     \item{Rule 4: }{observed L and R together may come from a latent B}
-#'     }
-#'
-#' Polytope order for B-histories is the nested order of canonical R-order
-#' within canonical L-order, as follows: \preformatted{
-#'       |          |  S - generating L2 and R2
-#'       | Omega.S  |  S - generating L2 and R3
-#'       |         |   L - 1
-#'       | Omega.L |   L - 2
-#'       |          |  R - 1
-#'       | Omega.R  |  R - 2
-#' Omega |          |  R - 3
-#'       |         |   B - generating L1 and R1
-#'       |         |   B - generating L1 and R2
-#'       | Omega.B |   B - generating L1 and R3
-#'       |         |   B - generating L2 and R1
-#'       |         |   B - generating L2 and R2
-#'       |         |   B - generating L2 and R3}
+#' See porcelain function \code{\link{get.Omega.B}}.
 #'
 #' @param Omega.L a matrix of unique, observed L-histories.
 #' @param Omega.R a matrix of unique, observed R-histories.
 #'
-#' @seealso observeHist
+#' @seealso \code{\link{observeHist}}
 #'
 #' @examples
 #' # raw observation data
@@ -138,42 +108,16 @@ compute.Omega.B <- function(Omega.L, Omega.R) { # {{{
 
 #' Generate A matrix from LL and LR
 #'
-#' This version of the A matrix, as in Bonner2013 only takes into account the
-#' histories actually observed in the data, and the only latent histories that
-#' could have generated them. Each latent history (in rows) generates the
-#' observed histories corresponding to the columns in which they contain a 1.
-#' Thanks to polytope ordering, its generation is really simple since its
-#' pattern only depends on the number of L-histories (LL) and R-histories (LR).
-#' Here is the pattern:\preformatted{
-#'       ______L_L_R_R_R-observable_and_ghosts___________________
-#'        a L  1 0 0 0 0 L-block |
-#'        b_L__0_1_0_0_0_________|
-#'        1 R  0 0 1 0 0         | Identity
-#'        2 R  0 0 0 1 0 R-block |
-#'  A:    3_R__0_0_0_0_1_________|_______________________________
-#'       a1 B  1 0 1 0 0         |
-#'       a2 B  1 0 0 1 0         |
-#'       a3 B  1 0 0 0 1 B-block | Combinations in polytope order
-#'       b1 B  0 1 1 0 0         |
-#'       b2 B  0 1 0 1 0         |
-#'       b3_B__0_1_0_0_1_________|_______________________________}
-#'
-#' The matrix A is actually not directly useful for JAGS because the polytope is
-#' better described by its kernel B.
+#' See porcelain function \code{\link{get.A}}.
 #'
 #' @param LL int the number of observed L-histories (not the sum of their
 #' frequencies but the number of *different* types of L-histories observed.
 #' @param LR int the number of observed R-histories
 #'
-#' @seealso compute.Omega.B compute.B
+#' @seealso \code{\link{compute.Omega.B}} \code{\link{compute.B}}
 #'
 #' @examples
 #' compute.A(LL=2, LR=3)
-#'
-#' @return the observation matrix A as a \code{\link[Matrix]{sparseMatrix}} : a
-#' LM x LU matrix with ones and zeroes, each row corresponding to a latent
-#' history sorted in polytope order, each column corresponding to an observable
-#' history sorded in polytope (or "canonical") order.
 #'
 #' @export
 
@@ -212,38 +156,14 @@ compute.A <- function(LL, LR) { # {{{
 
 #' Generate B matrix, nullspace of t(A)
 #'
-#' The polytope is directly described by a kernel of the observation process
-#' matrix A (more exactly t(A)). Just like A, its pattern is quite easy-to-grasp
-#' once the histories has been sorted in polytope order. So it is easy to
-#' generate and it only depends on the number of L-histories (LL) and of
-#' R-histories (LR). Here is the pattern:\preformatted{
-#'       ______B_B_B_B_B_B-latent_histories______________________
-#'        a L  - - - 0 0 0 L-block |
-#'        b_L__0_0_0_-_-_-_________|
-#'        1 R  - 0 0 - 0 0         | '-' are minus ones -1's
-#'        2 R  0 - 0 0 - 0 R-block |
-#'  B:    3_R__0_0_-_0_0_-_________|_______________________________
-#'       a1 B  + 0 0 0 0 0         |
-#'       a2 B  0 + 0 0 0 0         |
-#'       a3 B  0 0 + 0 0 0 B-block | Identity : '+' are ones 1's
-#'       b1 B  0 0 0 + 0 0         |
-#'       b2 B  0 0 0 0 + 0         |
-#'       b3_B__0_0_0_0_0_+_________|_______________________________}
+#' See porcelain function \code{\link{get.B}}.
 #'
-# (ugly-but-efficient as well: the pattern of B is easy to grasp and only
-# depends on LL and LR)
+#' @inheritParams compute.A
 #'
 #' @seealso \code{\link{compute.A}}
 #'
 #' @examples
 #' compute.B(LL=2, LR=3)
-#'
-#' @inheritParams compute.A
-#'
-#' @return the polytope matrix B as a \code{\link[Matrix]{sparseMatrix}} : a LM
-#' x LB matrix with ones, zeroes and minus ones, each row corresponding to a
-#' latent history sorted in polytope order, each column corresponding to an
-#' unobservable B-history sorded in polytope order.
 #'
 #' @export
 
