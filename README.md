@@ -93,7 +93,7 @@ To generate a model based on simulated data, try:
     > library(bimark)
     > m <- bimarkSimulationModel(N=20, T=5)
 
-The bimark model object is just a list. Access data with:
+The bimark model object is just a list. Access data with `$`:
 
     > m$n               # number of capture histories actually observed
     > m$LR              # number of observed right-histories
@@ -118,7 +118,7 @@ Get information with:
     > ?get.Omega.B
     > ?get.A
     
-## TroubleShooting
+## Troubleshooting
 
 If anything goes wrong (and things *will* go wrong), please file an
 issue report on [the repo](https://github.com/iago-lito/bimark/issues).  
