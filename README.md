@@ -55,14 +55,38 @@ our M2 report, 2015[^IagNOlivier2015], along with our notations.
 [^IagNOlivier2015]:
     soon on [HAL](https://hal.archives-ouvertes.fr/)?
 
-## Getting started
-
+## Installation
 
 Installing `bimark`, running the tests and building the documentation should be
 as easy as:
 
     > library(devtools)
     > install_github("iago-lito/bimark", build_vignettes=TRUE)
+
+.. but it is [NOT](http://stackoverflow.com/questions/40030414/) XD  
+At least not yet. Sorry.
+
+As a temporary solution, please perform this whole development procedure:
+
+    $ git clone https://github.com/iago-lito/bimark
+    
+Then in R:
+    
+    > library(devtools)
+    > library(testthat)
+    > setwd("bimark")
+    > document()  
+    > use_testthat()
+    > setwd("..")
+    > install("bimark", dependencies=TRUE, build_vignettes=TRUE)
+    > library(bimark)
+    > test_package("bimark")
+    > run_examples("bimark")
+
+If everything runs fine, then you're done!
+
+
+## Getting started
     
 To generate a model based on simulated data, try:
 
