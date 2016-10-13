@@ -1,12 +1,10 @@
 
-> Get into JAGS!
+> make `install_github` command work!
 
---
+> Get into JAGS and the deep part of bimark
+
+---
 
 > Packaging:
-    > reorganize the doc so that the help is mostly in the porcelain functions
-    *> Start writing a nice Readme.md
-    *> work on the main vignette
-    > update the repo adress once it'll be set on github
     > protect `captureEvents` and `nbCaptureEvents`?
 
