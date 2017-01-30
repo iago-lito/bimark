@@ -53,7 +53,7 @@ our M2 report, 2015[^IagNOlivier2015], along with our notations.
     Bonner *et al.* 2013:
     [doi:10.1111/biom.12045](http://onlinelibrary.wiley.com/doi/10.1111/biom.12045/abstract)  
 [^IagNOlivier2015]:
-    soon on [HAL](https://hal.archives-ouvertes.fr/)?
+    M2 [report](http://www.eleves.ens.fr/home/bonnici/Bonnici-Gimenez_2015.pdf)
 
 ## Installation
 
