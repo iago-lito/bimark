@@ -4,7 +4,7 @@
 var
     # data
     N,
-    a,
+    a[N],
     # parameters to estimate
     mu,
     tau;
@@ -18,7 +18,7 @@ model {
 
   # priors on parameters
   mu ~ dunif(-20., 20.)
-  sigma ~ dunif(0., 10.)
+  tau ~ dunif(0., 10.)
 
 }
 

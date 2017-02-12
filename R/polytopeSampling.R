@@ -44,6 +44,23 @@ estimateLatentCounts <- function(model, method='test') {
   # retrieve the right model
   jagsFile <- getBayesianModel('test')
 
+  # try to run the test jags model on dummy data:
+  actualMu <- 15.
+  actualTau <- .3
+  N <- 1e3
+  data <- rnorm(N, actualMu, 1. / sqrt(actualTau))
+  jm <- rjags::jags.model(jagsFile,
+                          data=list(a=data, N=N))
+  n.iter <- 1e3
+  mc <- rjags::coda.samples(jm,
+                            variable.names=c('mu', 'tau'),
+                            n.iter=n.iter,
+                            n.chains=1)[[1]] # only one chain
+  mus <- as.numeric(mc[1:n.iter, 'mu'])
+  taus <- as.numeric(mc[1:n.iter, 'tau'])
+  print(paste0(paste0("mu estimate: ", mean(mus), " vs ", actualMu)))
+  print(paste0(paste0("tau estimate: ", mean(taus), " vs ", actualTau)))
+
   return(model)
 
 }
