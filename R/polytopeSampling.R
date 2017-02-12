@@ -50,8 +50,8 @@ estimateLatentCounts <- function(model, method='test') {
   N <- 1e3
   data <- rnorm(N, actualMu, 1. / sqrt(actualTau))
   jm <- rjags::jags.model(jagsFile,
-                          data=list(a=data, N=N))
-  n.iter <- 1e3
+                          data=list(a=data, N=N), quiet=TRUE)
+  n.iter <- 1e4
   mc <- rjags::coda.samples(jm,
                             variable.names=c('mu', 'tau'),
                             n.iter=n.iter,
@@ -60,6 +60,9 @@ estimateLatentCounts <- function(model, method='test') {
   taus <- as.numeric(mc[1:n.iter, 'tau'])
   print(paste0(paste0("mu estimate: ", mean(mus), " vs ", actualMu)))
   print(paste0(paste0("tau estimate: ", mean(taus), " vs ", actualTau)))
+  par(mfrow=c(2, 1))
+  plot(mus, type='l')
+  plot(taus, type='l')
 
   return(model)
 
