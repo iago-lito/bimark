@@ -1,7 +1,11 @@
 
 > make `install_github` command work!
 
-> Get into JAGS and the deep part of bimark
+* Get into JAGS and the deep part of bimark
+    > add estimators and chain slots to the BimarkModel object
+    > optionnaly choose which .JAGS model to use from `estimateLatentCounts`
+      arguments
+    > better @example to getBayesianModel()
 
 ---
 

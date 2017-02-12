@@ -6,8 +6,7 @@ test_that("object creation works", {
   # Observation type
   expected <- "BimarkModel"
   m <- bimarkObservationModel(example.M)
-  actual <- class(m)
-  expect_equal(actual, expected)
+  expect_is(m, expected)
   # Simulation type
   set.seed(12)
   m <- bimarkSimulationModel()

@@ -1,0 +1,24 @@
+# Here is a dummy jags model, just to test integration within the package.
+
+# describe all nodes here
+var
+    # data
+    N,
+    a,
+    # parameters to estimate
+    mu,
+    tau;
+
+model {
+
+  # hypotheses on data structure
+  for (i in 1:N) {
+    a[i] ~ dnorm(mu, tau);
+  }
+
+  # priors on parameters
+  mu ~ dunif(-20., 20.)
+  sigma ~ dunif(0., 10.)
+
+}
+
