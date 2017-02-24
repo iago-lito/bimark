@@ -5,6 +5,10 @@ test_that(".jags files can be accessed", {
   expect(file.exists(jagsFile), "Returned file not found.")
   })
 
+test_that("dummy jags procedure works", {
+  expect_output(dummyJags(), "Okay")
+  })
+
 test_that("estimateLatentCounts works", {
   model <- bimarkSimulationModel()
   res <- estimateLatentCounts(model)
