@@ -1,17 +1,17 @@
 context("Bayesian latent count estimations.")
 
 test_that(".jags files can be accessed", {
-  jagsFile <- getBayesianModel('test')
+  jagsFile <- GetBayesianModel('test')
   expect(file.exists(jagsFile), "Returned file not found.")
   })
 
 test_that("dummy jags procedure works", {
-  expect_output(dummyJags(), "Okay")
+  expect_output(DummyJags(), "Okay")
   })
 
-test_that("estimateLatentCounts works", {
+test_that("EstimateLatentCounts works", {
   model <- BimarkSimulationModel()
-  res <- estimateLatentCounts(model)
+  res <- EstimateLatentCounts(model)
   expect_is(res, class(model))
   })
 

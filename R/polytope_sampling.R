@@ -12,11 +12,11 @@
 #' @return a path to the correspindong jags file
 #'
 #' @examples
-#' getBayesianModel('test')
+#' GetBayesianModel('test')
 #'
 #' @export
 
-getBayesianModel <- function(name) { # {{{
+GetBayesianModel <- function(name) { # {{{
   filename <- paste0(name, '.jags')
   jagsFile <- system.file('jags', filename, package='bimark')
   if (!file.exists(jagsFile))
@@ -45,11 +45,11 @@ getBayesianModel <- function(name) { # {{{
 #'
 #' @export
 
-dummyJags <- function(N=1e3, n.iter=1e3, mu=15., sigma=.3, # {{{
+DummyJags <- function(N=1e3, n.iter=1e3, mu=15., sigma=.3, # {{{
                       priors=c(-20., 20., 0., 10.)) {
 
   # retrieve the dummy model
-  jagsFile <- getBayesianModel('test')
+  jagsFile <- GetBayesianModel('test')
 
   # JAGS's dnorm do not use sigma but tau -_-
   tau <- 1. / sigma ^ 2
@@ -89,7 +89,7 @@ dummyJags <- function(N=1e3, n.iter=1e3, mu=15., sigma=.3, # {{{
 #'
 #' @export
 
-estimateLatentCounts <- function(model, method='test') { # {{{
+EstimateLatentCounts <- function(model, method='test') { # {{{
 
   return(model)
 
