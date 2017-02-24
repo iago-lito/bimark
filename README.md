@@ -91,31 +91,31 @@ If everything runs fine, then you're done!
 To generate a model based on simulated data, try:
 
     > library(bimark)
-    > m <- bimarkSimulationModel(N=20, T=5)
+    > m <- BimarkSimulationModel(N=20, T=5)
 
 The bimark model object is just a list. Access data with `$`:
 
     > m$n               # number of capture histories actually observed
     > m$LR              # number of observed right-histories
     > m$iOmega          # ids of all histories relevant to these data
-    > seeHist(m$iOmega) # visualize histories and their ids
+    > SeeHist(m$iOmega) # visualize histories and their ids
 
 To generate a model based on actual observation data, use:
 
     > myData <- example.M
-    > m <- bimarkObservationModel(myData)
+    > m <- BimarkObservationModel(myData)
     > print(m) # unknown number of individuals, since sides haven't been matched
     
 To retrieve matrices information from the model, feed dedicated methods with it:
 
-    > get.Omega.B(m) # all unobservable histories that may underlie these data
+    > GetOmega.B(m) # all unobservable histories that may underlie these data
     > get.A(m)       # observation matrix sorted in polytope order
     > get.B(m)       # kernel of A matrix generating the polytope
 
 Get information with:
 
-    > ?bimarkSimulationModel
-    > ?get.Omega.B
+    > ?BimarkSimulationModel
+    > ?GetOmega.B
     > ?get.A
     
 ## Troubleshooting

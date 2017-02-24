@@ -8,30 +8,30 @@
 #' This is useful to get F: observed counts from the observation matrix M, or to
 #' get the latent histories counts X from the latent simulated histories.
 #'
-#' @seealso \code{\link{observeHist}} \code{\link{Hist2ID}}
+#' @seealso \code{\link{ObserveHist}} \code{\link{Hist2ID}}
 #'
-#' @inheritParams observeHist
+#' @inheritParams ObserveHist
 #'
 #' @return a \code{data.frame} with two fields: \code{id} are observed histories
 #' IDs, and \code{F} with the corresponding observed counts
 #'
 #' @examples
 #' # on toy example
-#' F <- compute.Frequencies(example.M)
+#' F <- ComputeFrequencies(example.M)
 #'
 #' # on generated data
 #' set.seed(12)
-#' latent <- generateLatentHistories(N=20)
-#' obs <- observeHist(latent)
-#' seeHist(obs)
-#' F <- compute.Frequencies(obs)
+#' latent <- GenerateLatentHistories(N=20)
+#' obs <- ObserveHist(latent)
+#' SeeHist(obs)
+#' F <- ComputeFrequencies(obs)
 #'
 #' # This also works directly with latent histories
-#' X <- compute.Frequencies(latent)
+#' X <- ComputeFrequencies(latent)
 #'
 #' @export
 
-compute.Frequencies <- function(M){ # {{{
+ComputeFrequencies <- function(M){ # {{{
 
   counts <- as.data.frame(table(Hist2ID(M)), stringsAsFactors=FALSE)
   counts[[1]] <- as.character(counts[[1]])
@@ -46,31 +46,31 @@ compute.Frequencies <- function(M){ # {{{
 
 #' Build B-histories from L- and R-histories
 #'
-#' See porcelain function \code{\link{get.Omega.B}}.
+#' See porcelain function \code{\link{GetOmega.B}}.
 #'
 #' @param Omega.L a matrix of unique, observed L-histories.
 #' @param Omega.R a matrix of unique, observed R-histories.
 #'
-#' @seealso \code{\link{observeHist}}
+#' @seealso \code{\link{ObserveHist}}
 #'
 #' @examples
 #' # raw observation data
-#' obs <- compute.Frequencies(example.M)
+#' obs <- ComputeFrequencies(example.M)
 #' Omega.LRS <- ID2Hist(obs$id, T=ncol(example.M))
 #' # sort in canonical order
-#' o <- orderHists(Omega.LRS)
+#' o <- OrderHists(Omega.LRS)
 #' Omega.S <- Omega.LRS[o$S,]
 #' Omega.L <- Omega.LRS[o$L,]
 #' Omega.R <- Omega.LRS[o$R,]
 #' # get unobservable block in polytope order
-#' Omega.B <- compute.Omega.B(Omega.L, Omega.R)
+#' Omega.B <- ComputeOmegaB(Omega.L, Omega.R)
 #' # and this is canonical Omega:
 #' Omega <- rbind(Omega.S, Omega.L, Omega.R, Omega.B)
-#' seeHist(Omega)
+#' SeeHist(Omega)
 #'
 #' @export
 
-compute.Omega.B <- function(Omega.L, Omega.R) { # {{{
+ComputeOmegaB <- function(Omega.L, Omega.R) { # {{{
 
   # basic informations:
   T <- ncol(Omega.L)
@@ -93,10 +93,10 @@ compute.Omega.B <- function(Omega.L, Omega.R) { # {{{
 
       Omega.B[b,] <- apply(rbind(left,right), 2, function(events){
         # `events` contains two simultaneous events in two different histories
-        zeroes <- events == captureEvents["0"]      # mask for zeroes
-        if (all(zeroes)) return(captureEvents["0"]) # Rule 1
+        zeroes <- events == capture.events["0"]      # mask for zeroes
+        if (all(zeroes)) return(capture.events["0"]) # Rule 1
         if (any(zeroes)) return(events[!zeroes])    # Rules 2 and 3
-        return(captureEvents["B"])})                # Rule 4
+        return(capture.events["B"])})                # Rule 4
 
     }
   }
@@ -114,14 +114,14 @@ compute.Omega.B <- function(Omega.L, Omega.R) { # {{{
 #' frequencies but the number of *different* types of L-histories observed.
 #' @param LR int the number of observed R-histories
 #'
-#' @seealso \code{\link{compute.Omega.B}} \code{\link{compute.B}}
+#' @seealso \code{\link{ComputeOmegaB}} \code{\link{ComputeB}}
 #'
 #' @examples
-#' compute.A(LL=2, LR=3)
+#' ComputeA(LL=2, LR=3)
 #'
 #' @export
 
-compute.A <- function(LL, LR) { # {{{
+ComputeA <- function(LL, LR) { # {{{
 
   # Basic needed values:
   LU <- LL + LR
@@ -158,16 +158,16 @@ compute.A <- function(LL, LR) { # {{{
 #'
 #' See porcelain function \code{\link{get.B}}.
 #'
-#' @inheritParams compute.A
+#' @inheritParams ComputeA
 #'
-#' @seealso \code{\link{compute.A}}
+#' @seealso \code{\link{ComputeA}}
 #'
 #' @examples
-#' compute.B(LL=2, LR=3)
+#' ComputeB(LL=2, LR=3)
 #'
 #' @export
 
-compute.B <- function(LL, LR) { # {{{
+ComputeB <- function(LL, LR) { # {{{
 
   # Basic needed values:
   LU <- LL + LR

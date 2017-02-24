@@ -10,7 +10,7 @@ test_that("dummy jags procedure works", {
   })
 
 test_that("estimateLatentCounts works", {
-  model <- bimarkSimulationModel()
+  model <- BimarkSimulationModel()
   res <- estimateLatentCounts(model)
   expect_is(res, class(model))
   })

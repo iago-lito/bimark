@@ -21,19 +21,19 @@ bmclass <- "BimarkModel"
 #' @slot M raw observation matrix (see \code{\link{example.M}})
 #' @slot n number of observed histories (side and/or individuals)
 #' @slot F frequencies of observed histories in canonical order (see
-#' \code{\link{compute.Frequencies}})
+#' \code{\link{ComputeFrequencies}})
 #' @slot LS number of S-histories observed
 #' @slot LL number of L-histories observed
 #' @slot LR number of R-histories observed
 #' @slot iOmega latent histories matrix (stored as ids in canonical order) (see
-#' \code{\link{get.Omega.B}})
+#' \code{\link{GetOmega.B}})
 #'
-#' @seealso \code{\link{bimarkSimulationModel}}
-#' \code{\link{bimarkObservationModel}} \code{\link{print.BimarkModel}}
+#' @seealso \code{\link{BimarkSimulationModel}}
+#' \code{\link{BimarkObservationModel}} \code{\link{print.BimarkModel}}
 #' \code{\link{BimarkModelEncapsulation}}
 #'
 #' @examples
-#' model <- bimarkSimulationModel()
+#' model <- BimarkSimulationModel()
 #'
 #' class(model)
 #' print(model)
@@ -48,7 +48,7 @@ bmclass <- "BimarkModel"
 NULL
 
 # Utility method to create an empty model object
-createBimarkModel <- function() { # {{{
+CreateBimarkModel <- function() { # {{{
   model <- list(
                 L=NULL,
                 T=NULL,
@@ -70,7 +70,7 @@ createBimarkModel <- function() { # {{{
 #' @seealso \code{\link{BimarkModel}}
 #'
 #' @examples
-#' m <- bimarkSimulationModel()
+#' m <- BimarkSimulationModel()
 #' print(m)
 #'
 #' @export
@@ -121,26 +121,26 @@ print.BimarkModel <- function(model, ...) { # {{{
 #' This model will be full because latent histories are known. About the actual
 #' returned R object, see \code{help(BimarkModel)}.
 #'
-#' @seealso \code{\link{generateLatentHistories}} \code{\link{BimarkModel}}
+#' @seealso \code{\link{GenerateLatentHistories}} \code{\link{BimarkModel}}
 #'
-#' @inheritParams generateLatentHistories
+#' @inheritParams GenerateLatentHistories
 #'
 #' @return a \code{\link{BimarkModel}} object
 #'
 #' @examples
 #' set.seed(12)
-#' m <- bimarkSimulationModel()
+#' m <- BimarkSimulationModel()
 #'
 #' @export
 
-bimarkSimulationModel <- function(N     = 500, # {{{
+BimarkSimulationModel <- function(N     = 500, # {{{
                                   T     = 5,
                                   P     = rep(.1, T),
                                   delta = c(0., 4., 4., 2., 3.)) {
 
-  model <- createBimarkModel()
+  model <- CreateBimarkModel()
 
-  L <- generateLatentHistories(N, T, P, delta)
+  L <- GenerateLatentHistories(N, T, P, delta)
 
   model$T <- T
   model$P <- P
@@ -150,8 +150,8 @@ bimarkSimulationModel <- function(N     = 500, # {{{
   model$T <- ncol(L)
 
   # then simulate the observation process of these latent histories:
-  M <- observeHist(L)
-  model <- addObservationToModel(model, M)
+  M <- ObserveHist(L)
+  model <- AddObservationToModel(model, M)
 
   return(model)
 
@@ -166,31 +166,31 @@ bimarkSimulationModel <- function(N     = 500, # {{{
 #'
 #' @return a \code{\link{BimarkModel}} object
 #'
-#' @seealso \code{\link{example.M}} \code{\link{captureEvents}}
+#' @seealso \code{\link{example.M}} \code{\link{capture.events}}
 #' \code{\link{BimarkModel}}
 #'
 #' @examples
-#' m <- bimarkObservationModel(example.M)
+#' m <- BimarkObservationModel(example.M)
 #'
 #' @export
 
-bimarkObservationModel <- function(M) { # {{{
+BimarkObservationModel <- function(M) { # {{{
 
-  model <- createBimarkModel()
+  model <- CreateBimarkModel()
 
-  return(addObservationToModel(model, M))
+  return(AddObservationToModel(model, M))
 
 }
 
-# convenience to be called from both `bimarkSimulationModel` and
-# `bimarkObservationModel`
-addObservationToModel <- function(model, M) {
+# convenience to be called from both `BimarkSimulationModel` and
+# `BimarkObservationModel`
+AddObservationToModel <- function(model, M) {
 
   T <- ncol(M)
-  counts <- compute.Frequencies(M)
+  counts <- ComputeFrequencies(M)
   hists <- ID2Hist(counts$id, T) # unique hists
   # reorganize the canonical way:
-  o <- orderHists(hists)
+  o <- OrderHists(hists)
   LS <- length(o$S)
   LL <- length(o$L)
   LR <- length(o$R)
@@ -199,7 +199,7 @@ addObservationToModel <- function(model, M) {
   F <- counts$F[canonicalOrder]
 
   # Compute Omega.B and nullspace informations:
-  Omega.B <- compute.Omega.B(hists[o$L,], hists[o$R,])
+  Omega.B <- ComputeOmegaB(hists[o$L,], hists[o$R,])
   iOmega <- c(iOmega.SLR, Hist2ID(Omega.B))
 
   # That's it!
@@ -228,7 +228,7 @@ addObservationToModel <- function(model, M) {
 #' @seealso \code{\link{BimarkModel}}
 #'
 #' @examples
-#' m <- bimarkObservationModel(example.M)
+#' m <- BimarkObservationModel(example.M)
 #' # read ok
 #' m$LR
 #' m[['LR']]
@@ -249,12 +249,12 @@ NULL
   # context here: if the operator is called from a regular `bimark:*` method,
   # then let it run as expected. Otherwise it is that the user has asked for
   # internal members edition: raise an error.
-  if (isCalledByAFriend()) {
+  if (IsCalledByAFriend()) {
     # then we've been called by a friend, do as usual:
-    return(nativeWriteResult(`$<-`, o, ...))
+    return(NativeWriteResult(`$<-`, o, ...))
   }
   # Or raise an error and explain to user.. sorry :)
-  warnUserEncapsulationViolation('$')
+  WarnUserEncapsulationViolation('$')
   return(o)
 }
 
@@ -266,12 +266,12 @@ NULL
   # context here: if the operator is called from a regular `bimark:*` method,
   # then let it run as expected. Otherwise it is that the user has asked for
   # internal members edition: raise an error.
-  if (isCalledByAFriend()) {
+  if (IsCalledByAFriend()) {
     # then we've been called by a friend, do as usual:
-    return(nativeWriteResult(`[[<-`, o, ...))
+    return(NativeWriteResult(`[[<-`, o, ...))
   }
   # Or raise an error and explain to user.. sorry :)
-  warnUserEncapsulationViolation('[[')
+  WarnUserEncapsulationViolation('[[')
   return(o)
 }
 
@@ -283,20 +283,20 @@ NULL
   # context here: if the operator is called from a regular `bimark:*` method,
   # then let it run as expected. Otherwise it is that the user has asked for
   # internal members edition: raise an error.
-  if (isCalledByAFriend()) {
+  if (IsCalledByAFriend()) {
     # then we've been called by a friend, do as usual:
-    return(nativeWriteResult(`[<-`, o, ...))
+    return(NativeWriteResult(`[<-`, o, ...))
   }
   # Or raise an error and explain to user.. sorry :)
-  warnUserEncapsulationViolation('[')
+  WarnUserEncapsulationViolation('[')
   return(o)
 }
 
 # Isolate checking caller function: is it allowed to edit model object?
-isCalledByAFriend <- function() {
-  level <- -3 # the caller -> `*<-.BimarkModel` -> `isCalledByAFriend`
+IsCalledByAFriend <- function() {
+  level <- -3 # the caller -> `*<-.BimarkModel` -> `IsCalledByAFriend`
   # First: list authorized methods: methods in this package:
-  bimarkEnv <- environment(generateLatentHistories)
+  bimarkEnv <- environment(GenerateLatentHistories)
   friends <- objects(bimarkEnv) # here are their names
   # Second, get the calling function name:
   callerName <- as.character(sys.call(level)[1])
@@ -314,7 +314,7 @@ isCalledByAFriend <- function() {
 # Isolate getting the regular, native `*<-` result:
 # @param method name of the native method to call
 # @param object, ... arguments received by the first call to `*<-`
-nativeWriteResult <- function(method, object, ...) {
+NativeWriteResult <- function(method, object, ...) {
     # This is R fiddle-faddle, I've found no other way :(
     # change the class temporarily so the right `$<-` is called
     cl <- class(object)                # save the class
@@ -327,7 +327,7 @@ nativeWriteResult <- function(method, object, ...) {
 
 # Isolated warning the user of denied access
 # @param operator char the operator user has tried using
-warnUserEncapsulationViolation <- function(operator) {
+WarnUserEncapsulationViolation <- function(operator) {
   cat("The ", bmclass, " object is supposed to be encapsulated. ",
       "Write access is denied to the user.\n",
       "Please do not try editing its elements with `", operator,"`. ",
@@ -367,11 +367,11 @@ warnUserEncapsulationViolation <- function(operator) {
 #' column corresponding to an observable history sorded in polytope (or
 #' "canonical") order.
 #'
-#' @seealso \code{\link{get.B}} \code{\link{compute.A}}
+#' @seealso \code{\link{get.B}} \code{\link{ComputeA}}
 #' @export
 
 get.A <- function(model) {
-  return(compute.A(model$LL, model$LR))
+  return(ComputeA(model$LL, model$LR))
 }
 
 #' Generate B matrix, nullspace of t(A), from a BimarkModel object
@@ -402,20 +402,20 @@ get.A <- function(model) {
 #' latent history sorted in polytope order, each column corresponding to an
 #' unobservable B-history sorded in polytope order.
 #'
-#' @seealso \code{\link{get.A}} \code{\link{compute.B}}
+#' @seealso \code{\link{get.A}} \code{\link{ComputeB}}
 #' @export
 
 get.B <- function(model) {
-  return(compute.B(model$LL, model$LR))
+  return(ComputeB(model$LL, model$LR))
 }
 
 #' Get various parts of the Omega matrix
 #'
-#' \code{get.Omega.B} function computes all possible latent, unobservable
+#' \code{GetOmega.B} function computes all possible latent, unobservable
 #' histories (aka B-histories) which may have generated the given letf- and
 #' right-histories (L- and R-histories). In a nutshell, it generates Omega.B
 #' from Omega.L and Omega.R. Consider it as a kind of reversed
-#' \code{\link{observeHist}}. Omega.B is sorted with polytope order.
+#' \code{\link{ObserveHist}}. Omega.B is sorted with polytope order.
 #'
 #' Each B-history comes from the combination of one L- and one R-history. Here
 #' are the calculation rules for each couple of simultaneous observed events:
@@ -447,33 +447,33 @@ get.B <- function(model) {
 #'
 #' @return the corresponding Omega matrix
 #'
-#' @seealso \code{\link{orderHists}} \code{\link{compute.Omega.B}}
+#' @seealso \code{\link{OrderHists}} \code{\link{ComputeOmegaB}}
 #' @export
 
-get.Omega <- function(model) { # {{{
+GetOmega <- function(model) { # {{{
   return(ID2Hist(model$iOmega, model$T))
 }
 
-#' @rdname get.Omega
+#' @rdname GetOmega
 #' @export
-get.Omega.S <- function(model) {
+GetOmegaS <- function(model) {
   LS <- model$LS
   iOmega.S <- model$iOmega[1:LS]
   return(ID2Hist(iOmega.S, model$T))
 }
 
-#' @rdname get.Omega
+#' @rdname GetOmega
 #' @export
-get.Omega.L <- function(model) {
+GetOmega.L <- function(model) {
   LS <- model$LS
   LL <- model$LL
   iOmega.L <- model$iOmega[LS + (1:LL)]
   return(ID2Hist(iOmega.L, model$T))
 }
 
-#' @rdname get.Omega
+#' @rdname GetOmega
 #' @export
-get.Omega.R <- function(model) {
+GetOmega.R <- function(model) {
   LS <- model$LS
   LL <- model$LL
   LR <- model$LR
@@ -481,9 +481,9 @@ get.Omega.R <- function(model) {
   return(ID2Hist(iOmega.R, model$T))
 }
 
-#' @rdname get.Omega
+#' @rdname GetOmega
 #' @export
-get.Omega.B <- function(model) {
+GetOmega.B <- function(model) {
   LS <- model$LS
   LL <- model$LL
   LR <- model$LR
@@ -492,9 +492,9 @@ get.Omega.B <- function(model) {
   return(ID2Hist(iOmega.B, model$T))
 }
 
-#' @rdname get.Omega
+#' @rdname GetOmega
 #' @export
-get.Omega.SLR <- function(model) {
+GetOmegaSLR <- function(model) {
   LS <- model$LS
   LL <- model$LL
   LR <- model$LR
@@ -502,9 +502,9 @@ get.Omega.SLR <- function(model) {
   return(ID2Hist(iOmega.SLR, model$T))
 }
 
-#' @rdname get.Omega
+#' @rdname GetOmega
 #' @export
-get.Omega.LR <- function(model) {
+GetOmega.LR <- function(model) {
   LS <- model$LS
   LL <- model$LL
   LR <- model$LR

@@ -12,11 +12,11 @@
 #'    S : \tab simultaneous capture and match \tab : 4\cr
 #'  }
 #'
-#' @seealso \code{\link{nbCaptureEvents}}
+#' @seealso \code{\link{nb.capture.events}}
 #'
 #' @export
 
-captureEvents <- c(
+capture.events <- c(
     "0"  = 0L
   , "L"  = 1L
   , "R"  = 2L
@@ -26,29 +26,29 @@ captureEvents <- c(
 
 #' Number of capture events
 #'
-#' This is just defined as \code{length(\link{captureEvents})}
+#' This is just defined as \code{length(\link{capture.events})}
 #'
-#' @seealso \code{\link{captureEvents}}
+#' @seealso \code{\link{capture.events}}
 #'
 #' @export
 
-nbCaptureEvents <- length(captureEvents)
+nb.capture.events <- length(capture.events)
 
 #' One small example of an observation matrix.
 #'
 #' The observation matrix M has n lines and T columns, with n being the number
 #' of records and T the number of capture histories. Events are coded by an
-#' integer accordingly to \code{\link{captureEvents}}.
+#' integer accordingly to \code{\link{capture.events}}.
 #'
 #' This example matrix is drawn from Bonnici's M2 report.
 #'
 #' @examples
 #' print(example.M)
-#' seeHist(example.M)
+#' SeeHist(example.M)
 #'
 #' @export
 
-example.M <- matrix(captureEvents[
+example.M <- matrix(capture.events[
             c("0", "0", "R", "0", "0",
               "0", "0", "0", "0", "L",
               "L", "0", "B", "S", "0",
@@ -94,10 +94,11 @@ throw <- function(message){
 #' @param T integer number of capture occasions
 #' @param P \code{N}-vector: capture probabilities on each occasion (one value
 #' for constant probability constant)
-#' @param delta \code{\link{nbCaptureEvents}}-vector: capture probabilities for
-#' each capture event (or positive weights whose sum will be normalized to 1)
+#' @param delta \code{\link{nb.capture.events}}-vector: capture probabilities
+#' for each capture event (or positive weights whose sum will be normalized to
+#' 1)
 #'
-#' @seealso \code{\link{seeHists}} \code{\link{observeHists}}
+#' @seealso \code{\link{SeeHists}} \code{\link{ObserveHists}}
 #'
 #' @return a matrix of capture events: one row per individual, one column per
 #' capture occasion: each row is an individual capture history. These are the
@@ -105,11 +106,11 @@ throw <- function(message){
 #'
 #' @examples
 #' set.seed(12)
-#' generateLatentHistories(N=20, T=5, P=rep(.1, 5), delta=c(0, 4, 4, 2, 3))
+#' GenerateLatentHistories(N=20, T=5, P=rep(.1, 5), delta=c(0, 4, 4, 2, 3))
 #'
 #' @export
 
-generateLatentHistories <- function(N     = 500, # {{{
+GenerateLatentHistories <- function(N     = 500, # {{{
                                     T     = 5,
                                     P     = rep(.1, T),
                                     delta = c(0., 4., 4., 2., 3.)
@@ -122,7 +123,7 @@ generateLatentHistories <- function(N     = 500, # {{{
     throw("Inconsistent number of capture probabilities.")
   if (any(P > 1.) || any(P < 0.))
     throw("Inconsistent capture probabilities.")
-  if (length(delta) != nbCaptureEvents)
+  if (length(delta) != nb.capture.events)
     throw("Inconsistent number of capture event probabilities.")
   if (any(delta < 0.))
     throw("No negative weights for capture event probabilities.")
@@ -133,7 +134,7 @@ generateLatentHistories <- function(N     = 500, # {{{
   L <- t(replicate(N, stats::rbinom(T, 1, P)))
 
   # Then, find out for each capture on which side it happened
-  L[as.logical(L)] <- sample(captureEvents, sum(L), prob=delta, replace=TRUE)
+  L[as.logical(L)] <- sample(capture.events, sum(L), prob=delta, replace=TRUE)
 
   return(L)
 
@@ -150,7 +151,7 @@ generateLatentHistories <- function(N     = 500, # {{{
 #' @param history for T capture events, either an events vector of length T or
 #' a matrix of n histories \code{dim(n, T)}
 #'
-#' @seealso \code{\link{ID2Hist}} \code{\link{generateLatentHistories}}
+#' @seealso \code{\link{ID2Hist}} \code{\link{GenerateLatentHistories}}
 #'
 #' @return if \code{history} is one history, its id. If \code{history} is
 #' several history, their corresponding vector of ids. They are (potentially
@@ -162,7 +163,7 @@ generateLatentHistories <- function(N     = 500, # {{{
 #'                  1, 1, 0, 2, 0,
 #'                  0, 3, 4, 0, 0,
 #'                  0, 0, 0, 4, 4), 4, 5, byrow=TRUE))
-#' Hist2ID(generateLatentHistories(4, 5))
+#' Hist2ID(GenerateLatentHistories(4, 5))
 #'
 #' @export
 
@@ -173,14 +174,14 @@ Hist2ID <- function(history){ # {{{
     return(apply(history, 1, Hist2ID))
 
   # Plain arithmetics of history id: translate an integer from base
-  # `nbCaptureEvents` into base 10
+  # `nb.capture.events` into base 10
   T <- length(history)
   if (T == 1)
     return(as.character(history + 1))
   # use arbitrary long integers not to crush `int`'s ceiling!
   res <- gmp::as.bigz(1)
   for (i in 1:length(history))
-    res <- res + history[i] * (nbCaptureEvents ^ (nbCaptureEvents - i))
+    res <- res + history[i] * (nb.capture.events ^ (nb.capture.events - i))
   return(as.character(res))
 
 } # }}}
@@ -203,7 +204,7 @@ Hist2ID <- function(history){ # {{{
 #' @examples
 #' Hist2ID(c(0, 4, 0, 1, 3))
 #' set.seed(6)
-#' hists <- generateLatentHistories(10)
+#' hists <- GenerateLatentHistories(10)
 #' Hist2ID(hists)
 #'
 #' @export
@@ -218,14 +219,14 @@ ID2Hist <- function(id, T){ # {{{
   }
 
   # Plain arithmetics: translate an integer from base 10 to base
-  # `nbCaptureEvents`
+  # `nb.capture.events`
   # Thank you gmp for arbitrary long integer manipulation!
-  res <- as.character(gmp::as.bigz(id) - 1, b=nbCaptureEvents)
-  res <- captureEvents[as.integer(strsplit(res, '')[[1]]) + 1]
+  res <- as.character(gmp::as.bigz(id) - 1, b=nb.capture.events)
+  res <- capture.events[as.integer(strsplit(res, '')[[1]]) + 1]
   # adjust the size to desired T
   lr <- length(res)
   if (lr < T)
-    res <- c(rep(captureEvents['0'], T - lr), res)
+    res <- c(rep(capture.events['0'], T - lr), res)
 
   return(res)
 
@@ -250,23 +251,23 @@ ID2Hist <- function(id, T){ # {{{
 #'
 #' @note Be aware that canonical order is not well-suited for polytope analysis
 #' of the B-bloc. Instead, polytope order is recommended. See
-#' \code{\link{get.Omega.B}}.
+#' \code{\link{GetOmega.B}}.
 #'
 #' @param hists a histories matrix (see \code{\link{example.M}})
 #'
-#' @seealso \code{\link{isObservable}}
+#' @seealso \code{\link{IsObservable}}
 #'
 #' @return a list of index vectors, each named item corresponding to a block of
 #' histories: "0", "S", "L", "R", "B"
 #'
 #' @examples
 #' set.seed(6)
-#' hists <- generateLatentHistories(N=20)
-#' orderHists(hists)
+#' hists <- GenerateLatentHistories(N=20)
+#' OrderHists(hists)
 #'
 #' @export
 
-orderHists <- function(hists){ # {{{
+OrderHists <- function(hists){ # {{{
 
   # original order that will be reorganized to get the result, hitchhiking along
   # the sorting process.
@@ -303,24 +304,24 @@ orderHists <- function(hists){ # {{{
 
   # find the null histories (all zero)
   null.mask <- apply(hists, 1, function(h)
-                     all(h == captureEvents["0"]))
+                     all(h == capture.events["0"]))
   eval(macro(null.mask))
 
   # Simultaneous histories (contain one S at least)
   S.mask    <- apply(hists, 1, function(h)
-                     any(h == captureEvents["S"]))
+                     any(h == capture.events["S"]))
   eval(macro(S.mask))
 
   # Observable left-histories: (left-only)
   L.mask <- apply(hists, 1, function(h){
       collapsed <- unique(h)
-      return(all(collapsed %in% captureEvents[c("0", "L")]))})
+      return(all(collapsed %in% capture.events[c("0", "L")]))})
   eval(macro(L.mask))
 
   # Observable right-histories: (right-only)
   R.mask <- apply(hists, 1, function(h){
       collapsed <- unique(h)
-      return(all(collapsed %in% captureEvents[c("0", "R")]))})
+      return(all(collapsed %in% capture.events[c("0", "R")]))})
   eval(macro(R.mask))
 
   # All remaining histories are unobservable B-histories
@@ -343,39 +344,39 @@ orderHists <- function(hists){ # {{{
 #'
 #' @inheritParams Hist2ID
 #'
-#' @seealso \code{\link{orderHists}}
+#' @seealso \code{\link{OrderHists}}
 #'
 #' @return boolean \code{TRUE} if the history can be observed, or a boolean mask
 #' selecting the observable histories only
 #'
 #' @examples
-#' isObservable(captureEvents[c('R', 'S', 'S', 'R', 'S')])
-#' isObservable(captureEvents[c('R', 'B', 'B', 'B', '0')])
+#' IsObservable(capture.events[c('R', 'S', 'S', 'R', 'S')])
+#' IsObservable(capture.events[c('R', 'B', 'B', 'B', '0')])
 #' set.seed(12)
-#' isObservable(generateLatentHistories(N=20))
+#' IsObservable(GenerateLatentHistories(N=20))
 #'
 #' @export
 
-isObservable <- function(history){ # {{{
+IsObservable <- function(history){ # {{{
 
   # recursive call for vectorization
   if (!is.null(dim(history)))
-    return(apply(history, 1, isObservable))
+    return(apply(history, 1, IsObservable))
 
   # TODO: `don't like this algorithm, improve it if it is too slow
 
   # Any history is observable if it contains a S event: both sides are matched
-  if (any(history == captureEvents['S']))
+  if (any(history == capture.events['S']))
     return(TRUE)
 
   # Without an S, any two-sided history is unobservable, that is either..
-  if (any(history == captureEvents['B'])) # .. containing a B
+  if (any(history == capture.events['B'])) # .. containing a B
     return(FALSE)
-  if (all(captureEvents[c('R', 'L')] %in% history)) # .. or containing R *and* L
+  if (all(capture.events[c('R', 'L')] %in% history)) # ..or containing R *and* L
     return(FALSE)
 
   # The null history is also unobservable
-  if (all(history == captureEvents['0']))
+  if (all(history == capture.events['0']))
     return(FALSE)
 
   # But all remaining histories are observable (one-sided histories)
@@ -400,46 +401,46 @@ isObservable <- function(history){ # {{{
 #'   enough}}
 #'
 #' @param latent one raw history or a matrix of histories as given by
-#' \code{\link{generateLatentHistories}}
+#' \code{\link{GenerateLatentHistories}}
 #'
-#' @seealso \code{\link{isObservable}}
+#' @seealso \code{\link{IsObservable}}
 #'
 #' @return an observation matrix: histories one would observe if \code{latent}
 #' were the latent ones.
 #'
 #' @examples
 #' set.seed(2)
-#' latent <- generateLatentHistories(N=10)
-#' observeHist(latent)
+#' latent <- GenerateLatentHistories(N=10)
+#' ObserveHist(latent)
 #'
 #' @export
 
-observeHist <- function(latent){ # {{{
+ObserveHist <- function(latent){ # {{{
 
   # Recursive call to vectorize over histories:
   if (!is.null(dim(latent))) {
-    return(do.call(rbind, plyr::alply(latent, 1, observeHist)))
+    return(do.call(rbind, plyr::alply(latent, 1, ObserveHist)))
   }
 
   T <- length(latent)
 
   # Rule 2: a latent containing a S is kept as it is
-  if (captureEvents[c('S')] %in% latent)
+  if (capture.events[c('S')] %in% latent)
     return(matrix(latent, nrow=1))
 
   # Rules 3-4: any other latent generates 2 ghosts:
-  Bs <- latent == captureEvents['B'] # locate the B's
-  Ls <- latent == captureEvents['L'] # locate the L's
-  Rs <- latent == captureEvents['R'] # locate the R's
-  L.ghosts <- replace(latent   , Bs, captureEvents['L']) # L side of B
-  L.ghosts <- replace(L.ghosts , Rs, captureEvents['0']) # then no R's
-  R.ghosts <- replace(latent   , Bs, captureEvents['R']) # R side of B
-  R.ghosts <- replace(R.ghosts , Ls, captureEvents['0']) # then no L's
+  Bs <- latent == capture.events['B'] # locate the B's
+  Ls <- latent == capture.events['L'] # locate the L's
+  Rs <- latent == capture.events['R'] # locate the R's
+  L.ghosts <- replace(latent   , Bs, capture.events['L']) # L side of B
+  L.ghosts <- replace(L.ghosts , Rs, capture.events['0']) # then no R's
+  R.ghosts <- replace(latent   , Bs, capture.events['R']) # R side of B
+  R.ghosts <- replace(R.ghosts , Ls, capture.events['0']) # then no L's
 
   # Rule 1: remove the null ghosts:
-  if (all(L.ghosts == captureEvents['0']))
+  if (all(L.ghosts == capture.events['0']))
     L.ghosts <- matrix(integer(0), ncol=T)
-  if (all(R.ghosts == captureEvents['0']))
+  if (all(R.ghosts == capture.events['0']))
     R.ghosts <- matrix(integer(0), ncol=T)
 
   # paste them together in the result:
@@ -460,13 +461,13 @@ observeHist <- function(latent){ # {{{
 #' @seealso \code{\link{ID2Hist}} \code{\link{Hist2ID}}
 #'
 #' @examples
-#' seeHist(1015)
-#' seeHist(c(1015, 1, 42, 2092))
-#' seeHist(generateLatentHistories(N=20))
+#' SeeHist(1015)
+#' SeeHist(c(1015, 1, 42, 2092))
+#' SeeHist(GenerateLatentHistories(N=20))
 #'
 #' @export
 
-seeHist <- function(x, T=NULL) { # {{{
+SeeHist <- function(x, T=NULL) { # {{{
 
   # interpret the argument:
   if (!is.null(dim(x))) {# interpreted as a matrix of histories
@@ -479,7 +480,7 @@ seeHist <- function(x, T=NULL) { # {{{
   }
   else { # interpreted as a vector of IDs
     id <- x
-    minimal.T <- max(gmp::sizeinbase(gmp::as.bigz(id), b=nbCaptureEvents))
+    minimal.T <- max(gmp::sizeinbase(gmp::as.bigz(id), b=nb.capture.events))
     if (is.null(T))
       T <- minimal.T
     else if (T < minimal.T)
@@ -489,7 +490,7 @@ seeHist <- function(x, T=NULL) { # {{{
 
   # Translate it to actual history events and print it to the screen:
   N <- nrow(hist)
-  res <- names(captureEvents)[hist + 1]
+  res <- names(capture.events)[hist + 1]
   dim(res) <- c(N, T)
   res <- cbind(res, ":", id, "\n")
   cat("", do.call(paste, as.list(c(t(res)))))

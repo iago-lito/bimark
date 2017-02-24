@@ -5,18 +5,18 @@ context("BimarkModel object")
 test_that("object creation works", {
   # Observation type
   expected <- "BimarkModel"
-  m <- bimarkObservationModel(example.M)
+  m <- BimarkObservationModel(example.M)
   expect_is(m, expected)
   # Simulation type
   set.seed(12)
-  m <- bimarkSimulationModel()
+  m <- BimarkSimulationModel()
   actual <- class(m)
   expect_equal(actual, expected)
   })
 
 test_that("object pseudo-encapsulation works", {
 
-  m <- bimarkObservationModel(example.M)
+  m <- BimarkObservationModel(example.M)
 
   # # reading (allowed)
   expected <- 3
@@ -74,16 +74,16 @@ test_that("object pseudo-encapsulation works", {
 
 test_that("One-line degenerated cases do not cause drop=TRUE bugs", {
   set.seed(12) # find a LL = 1
-  expect_error(m <- bimarkSimulationModel(N=20, T=5), NA)
+  expect_error(m <- BimarkSimulationModel(N=20, T=5), NA)
   set.seed(10) # and a LR = 1
-  expect_error(m <- bimarkSimulationModel(N=20, T=5), NA)
+  expect_error(m <- BimarkSimulationModel(N=20, T=5), NA)
   set.seed(142) # and both
-  expect_error(m <- bimarkSimulationModel(N=20, T=5), NA)
+  expect_error(m <- BimarkSimulationModel(N=20, T=5), NA)
   })
 
 test_that("Package works for big values of T", {
   # no more crushing integers ceiling, cf commit 7634825
   set.seed(12)
-  m <- bimarkSimulationModel(N=1e3, T=50)
+  m <- BimarkSimulationModel(N=1e3, T=50)
   })
 

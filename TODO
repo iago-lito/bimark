@@ -14,5 +14,5 @@
 ---
 
 > Packaging:
-    > protect `captureEvents` and `nbCaptureEvents`?
+    > protect `capture.events` and `nb.capture.events`?
 
