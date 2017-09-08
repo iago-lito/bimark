@@ -43,6 +43,9 @@ GetBayesianModel <- function(name) { # {{{
 #' @param priors range of uniform priors around mu and sigma: \code{c(lowerMu,
 #' upperMu, lowerSigma, upperSigma)}
 #'
+#' @examples
+#' DummyJags()
+#'
 #' @export
 
 DummyJags <- function(N=1e3, n.iter=1e3, mu=15., sigma=.3, # {{{
@@ -63,13 +66,15 @@ DummyJags <- function(N=1e3, n.iter=1e3, mu=15., sigma=.3, # {{{
   mus <- as.numeric(mc[1:n.iter, 'mu'])
   taus <- as.numeric(mc[1:n.iter, 'tau'])
   sigmas <- 1 / sqrt(taus)
-  print(paste0(paste0("mu estimate: ", mean(mus), " vs real: ", mu)))
-  print(paste0(paste0("sigma estimate: ", mean(sigmas), " vs real: ", sigma)))
+  cat(paste0(paste0("mu estimate: ", mean(mus),
+                    " vs real: ", mu, '\n')))
+  print(paste0(paste0("sigma estimate: ", mean(sigmas),
+                      " vs real: ", sigma, '\n')))
   par(mfrow=c(2, 1))
   plot(mus, type='l')
   plot(taus, type='l')
 
-  print("Okay, everything went well.")
+  cat("Okay, everything went well.\n")
 
 }
 # }}}
