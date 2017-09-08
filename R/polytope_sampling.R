@@ -92,6 +92,10 @@ DummyJags <- function(N=1e3, n.iter=1e3, mu=15., sigma=.3, # {{{
 #' @return an updated BimarkModel object with the estimators, the chains traces
 #' and their properties.
 #'
+#' @examples
+#' m <- BimarkSimulationModel(N=20, T=5)
+#' EstimateLatentCounts(m)
+#'
 #' @export
 
 EstimateLatentCounts <- function(model, method='test') { # {{{
