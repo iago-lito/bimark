@@ -103,10 +103,6 @@ EstimateLatentCounts <- function(model, method='boundingBox', # {{{
                                              h.delta=rep(1, nb.capture.events)))
 {
 
-  # temp for building
-  model <- BimarkSimulationModel(N=50, T=5)
-  method <- 'boundingBox'
-
   # retrieve the desired model
   jagsFile <- GetBayesianModel(method)
 
@@ -135,6 +131,7 @@ EstimateLatentCounts <- function(model, method='boundingBox', # {{{
     L.f <- F[1:LL]
     R.f <- F[(LL+1):(LL+LR)]
   }
+  x0 <- c(L.f, R.f, rep(0, LB))
   # maximum values for latent counts
   # or there would be too many left- or right-histories
   box.ceilings <- vapply(1:LB, function(i) # watch canonical order of B-hists!
@@ -148,20 +145,30 @@ EstimateLatentCounts <- function(model, method='boundingBox', # {{{
                     LL = LL,
                     LR = LR,
                     LU = LU,
+                    LM = LM,
+                    LB = LB,
                     L  =  L,
                     is.Sf.empty = is.Sf.empty,
                     jagsS.f = jagsS.f,
                     L.f = L.f,
                     R.f = R.f,
+                    x0 = x0,
                     Omega = GetOmega(model),
                     box.ceilings = box.ceilings,
-                    B = as.matrix(ComputeB(LL, LR)))
+                    B = as.matrix(ComputeB(LL, LR)),
+                    PoissonC = 1e5,
+                    PoissonTrick = 1)
 
+  print(LS)
+  print(LL)
+  print(LR)
   jm <- rjags::jags.model(jagsFile,
                           data=c(data.list, priors), quiet=TRUE)
 
-  return(model)
+  return(jm)
 
 }
+m <- BimarkSimulationModel(N=20, T=5)
+EstimateLatentCounts(m)
 # }}}
 
