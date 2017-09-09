@@ -1,3 +1,4 @@
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # This model implements a classical, naive sampling from the polytope:
 # draw random points in the bounding box, then reject them or not based on the
 # positivity of x. This equivalent to Simon Bonner's procedure.
@@ -5,6 +6,7 @@
 # Pro: easy to grasp and easy to implement
 # Cons: leads to a *really* high level of rejection, since (as far as I have
 # tried), a small polytope may easily fit in less than 1% of its bounding box.
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 # Describe all nodes here:# {{{
 var
@@ -17,10 +19,11 @@ var
 # number various types of histories to consider
   LS, LL, LR, LU, LB, LM, L,
 # data counts for the various histories
-  jagsS.f[jagsLS],
-  is.Sf.empty, # special degenerated case to handle
   L.f[LL],
   R.f[LR],
+  is.Sf.empty, # special degenerated case to handle
+  jagsLS, # virtual LS for jags: equals LS OR 1 if LS=0
+  jagsS.f[jagsLS], # virtual S.F for jags: dummy data if LS=0
 # the actual histories
   Omega[L,T],
 # upper bounds of the hyperbox bounding the polytope (lower bounds are 0)

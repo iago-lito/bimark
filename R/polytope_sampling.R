@@ -54,7 +54,7 @@ DummyJags <- function(N=1e3, n.iter=1e3, mu=15., sigma=.3, # {{{
   # retrieve the dummy model
   jagsFile <- GetBayesianModel('test')
 
-  # JAGS's dnorm do not use sigma but tau -_-
+  # JAGS's dnorm does not use sigma but tau -_-
   tau <- 1. / sigma ^ 2
   data <- rnorm(N, mu, sigma)
   jm <- rjags::jags.model(jagsFile,
@@ -98,7 +98,67 @@ DummyJags <- function(N=1e3, n.iter=1e3, mu=15., sigma=.3, # {{{
 #'
 #' @export
 
-EstimateLatentCounts <- function(model, method='test') { # {{{
+EstimateLatentCounts <- function(model, method='boundingBox', # {{{
+                                 priors=list(h.P=c(1, 1),
+                                             h.delta=rep(1, nb.capture.events)))
+{
+
+  # temp for building
+  model <- BimarkSimulationModel(N=50, T=5)
+  method <- 'boundingBox'
+
+  # retrieve the desired model
+  jagsFile <- GetBayesianModel(method)
+
+  # Prepare values for all required fixed nodes:
+  # basic needed values:
+  LS <- model$LS
+  LL <- model$LL
+  LR <- model$LR
+  LU <- LL + LR
+  LB <- LL * LR
+  LM <- LU + LB
+  L <- LS + LL + LR + LB
+  # data counts
+  F <- model$F
+  # special LS = 0 case to handle
+  if (LS > 0) {
+    is.Sf.empty <- 0
+    jagsLS <- LS
+    jagsS.f <- F[1:LS]
+    L.f <- F[(LS+1):(LS+LL)]
+    R.f <- F[(LS+LL+1):(LS+LL+LR)]
+  } else {
+    is.Sf.empty <- 1
+    jagsLS <- 1 # fill it with one dummy piece of data
+    jagsS.f <- 0 # dummy data read nowhere except in JAGS: n <- sum(X)
+    L.f <- F[1:LL]
+    R.f <- F[(LL+1):(LL+LR)]
+  }
+  # maximum values for latent counts
+  # or there would be too many left- or right-histories
+  box.ceilings <- vapply(1:LB, function(i) # watch canonical order of B-hists!
+                     min(L.f[((i - 1) %/% LR) + 1],
+                         R.f[((i - 1) %% LR) + 1]), 1)
+
+  # see `boundingBox.jags` for data node descriptions
+  data.list <- list(T = model$T,
+                    nbCaptureEvents = nb.capture.events,
+                    jagsLS = jagsLS,
+                    LL = LL,
+                    LR = LR,
+                    LU = LU,
+                    L  =  L,
+                    is.Sf.empty = is.Sf.empty,
+                    jagsS.f = jagsS.f,
+                    L.f = L.f,
+                    R.f = R.f,
+                    Omega = GetOmega(model),
+                    box.ceilings = box.ceilings,
+                    B = as.matrix(ComputeB(LL, LR)))
+
+  jm <- rjags::jags.model(jagsFile,
+                          data=c(data.list, priors), quiet=TRUE)
 
   return(model)
 
