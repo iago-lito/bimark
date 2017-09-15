@@ -103,8 +103,9 @@ EstimateLatentCounts <- function(model, method='boundingBox', # {{{
                                              h.delta=rep(1, nb.capture.events)))
 {
 
-  # retrieve the desired model
-  jagsFile <- GetBayesianModel(method)
+  # TODO: better (degenerated-)multi-case organisation: one common processing
+  # then each part should add its small contribution to the building of
+  # `data.list`, `inits`, `monitor`, etc.
 
   # Prepare values for all required fixed nodes:
   # basic needed values:
@@ -115,6 +116,18 @@ EstimateLatentCounts <- function(model, method='boundingBox', # {{{
   LB <- LL * LR
   LM <- LU + LB
   L <- LS + LM
+
+  # in case the model is degenerated, switch to the more adapted one:
+  degenerated <- LB == 0
+  if (degenerated) {
+    method <- 'degenerated'
+    cat(paste0('No unobservable histories in the model. Switching to ',
+               method, ' method.\n'))
+  }
+
+  # retrieve the desired model
+  jagsFile <- GetBayesianModel(method)
+
   # data counts
   F <- model$F
   # special LS = 0 case to handle
@@ -131,6 +144,9 @@ EstimateLatentCounts <- function(model, method='boundingBox', # {{{
     L.f <- F[1:LL]
     R.f <- F[(LL+1):(LL+LR)]
   }
+  # degenerated cases:
+  if (LL == 0) L.f <- integer(0)
+  if (LR == 0) R.f <- integer(0)
   x0 <- c(L.f, R.f, rep(0, LB))
   # maximum values for latent counts
   # or there would be too many left- or right-histories
@@ -138,7 +154,8 @@ EstimateLatentCounts <- function(model, method='boundingBox', # {{{
                      min(L.f[((i - 1) %/% LR) + 1],
                          R.f[((i - 1) %% LR) + 1]), 1)
 
-  # see `boundingBox.jags` for data node descriptions
+  # Fill data node (see `ins/jags/*.jags` for node descriptions)
+  # common nodes
   data.list <- list(T = model$T,
                     nbCaptureEvents = nb.capture.events,
                     jagsLS = jagsLS,
@@ -150,19 +167,35 @@ EstimateLatentCounts <- function(model, method='boundingBox', # {{{
                     L  =  L,
                     is.Sf.empty = is.Sf.empty,
                     jagsS.f = jagsS.f,
-                    L.f = L.f,
-                    R.f = R.f,
-                    x0 = x0,
                     Omega = GetOmega(model),
-                    box.ceilings = box.ceilings,
-                    B = as.matrix(ComputeB(LL, LR)),
                     PoissonC = 1e5,
-                    PoissonTrick = 1,
-                    BernoulliTrick = 1)
+                    PoissonTrick = 1
+                    )
+  # nodes to monitor/track during MCMC process (many for debugging)
+  monitor <- c('ln.Likelihood', 'jagsS.f', 'n', 'N', 'G', 'P', 'p', 'delta')
+  # initial nodes
+  inits <- list()
 
-  # Initial values must be consistent with BernoulliTrick at least: all zeroes
-  # for the polytope, say.
-  inits <- list(unifs=rep(0, LB)) # => d=rep(0, LB), but it is "fixed node"..
+  # case-specific nodes
+  if (degenerated) {
+    data.list <- c(data.list, list(fixed.X = c(jagsS.f, L.f, R.f)))
+  } else {
+    data.list <- c(data.list, list(
+                                   L.f = L.f,
+                                   R.f = R.f,
+                                   x0 = x0,
+                                   box.ceilings = box.ceilings,
+                                   B = as.matrix(ComputeB(LL, LR)),
+                                   BernoulliTrick = 1
+                                   ))
+    monitor <- c(monitor, c('X', 'B', 'x', 'd', 'x0', 'allxPos',
+                            'BernoulliTrick', 'BernoulliTrickP'))
+    # Initial values must be consistent with BernoulliTrick at least: all zeroes
+    # for the polytope, say.
+    inits <- c(inits,
+               list(unifs=rep(0, LB))) # => d=rep(0, LB), but it is "fixed node"
+  }
+
   # TODO: mak'em parameters
   RNG <- list(.RNG.name="base::Marsaglia-Multicarry", .RNG.seed=8)
 
@@ -179,10 +212,6 @@ EstimateLatentCounts <- function(model, method='boundingBox', # {{{
   n.iter <- 1e3 # TODO: make it a parameter
   # only ONE chain will be processed. Launch in parallel if you need several.
   n.chains <- 1
-  # variables to monitor/track during MCMC process (many for debugging)
-  monitor <- c('ln.Likelihood', 'X', 'jagsS.f', 'x', 'B', 'd', 'x0', 'n', 'N',
-               'allxPos', 'BernoulliTrickP', 'BernoulliTrick', 'G', 'P', 'p',
-               'delta')
   mc <- rjags::coda.samples(jm,
                             variable.names=monitor,
                             n.iter=n.iter,
@@ -192,8 +221,7 @@ EstimateLatentCounts <- function(model, method='boundingBox', # {{{
 
 }
 # set.seed(6)  # got another bug here: 'lgamma' output + R error
-# set.seed(11) # got another bug there: degenerated case
-# set.seed(2)  # got an error here: invalid parent values: solved!
+# set.seed(11) # got another bug there: degenerated case: solved
 # m <- BimarkSimulationModel(N=20, T=5)
 # mc <- EstimateLatentCounts(m)
 # }}}

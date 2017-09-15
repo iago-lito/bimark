@@ -1,11 +1,11 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# This model implements a classical, naive sampling from the polytope:
-# draw random points in the bounding box, then reject them or not based on the
-# positivity of x. This equivalent to Simon Bonner's procedure.
-#
-# Pro: easy to grasp and easy to implement
-# Cons: leads to a *really* high level of rejection, since (as far as I have
-# tried), a small polytope may easily fit in less than 1% of its bounding box.
+# Here is the very same model as the adjacent one, but adapted for the
+# degenerated case where LB == 0. In this case, the polytope has no dimensions,
+# and it is difficult to handle it because JAGS doesn't seem to handle empty
+# vectors.
+# Watch out, this script will probably not work in the super degenerated case
+# where LL = LR = LS = 0, but then please don't bother using it: you have no
+# data.
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
@@ -18,20 +18,16 @@ var
 # number of capture events
   nbCaptureEvents,
 # number of various types of histories to consider
+# LB should equal zero now, because one of (LL, LR) is zero, so the other equals
+# LU and LM.. and may be zero as well (in which case L == LS)
   LS, LL, LR, LU, LB, LM, L,
-# data counts for the various histories
-  L.f[LL],
-  R.f[LR],
-  is.Sf.empty,     # special degenerated case to handle
-  jagsLS,          # virtual LS for jags: equals LS OR 1 if LS=0
-  jagsS.f[jagsLS], # virtual S.F for jags: dummy data if LS=0
+  jagsS.f[jagsLS], # still handle the LS=0 case with this trick (see main model)
+  is.Sf.empty,
 # the actual histories
   Omega[L,T],
-# upper bounds of the hyperbox bounding the polytope (lower bounds are 0)
-  box.ceilings[LB],
-# nullspace of the A matrix, describing the polytope from which to sample d.
-# It also provides a way to rebuild x = B.d + x0
-  B[LL + LR + LL*LR, LL * LR],
+# In this degenerated model, the latent counts X are constant, equal to the
+# observed counts. They are thus given as data: X = c(jagsS.f, L.f, R.f)
+  fixed.X[L + is.Sf.empty],
 # }}} - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Second, prior "hyper"parameters: they are also fixed # {{{ - - - - - - - - - -
@@ -40,8 +36,6 @@ var
 # dirichlet parameters for capture events probabilities given that a capture
 # occured (its first element ('no capture') will be set to zero)
   h.delta[nbCaptureEvents],
-# Uniform prior for the polytope
-# TODO: make it tweakable?
 # }}} - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Third: parameters: these are the ones whose values we are looking for: # {{{ -
@@ -49,40 +43,24 @@ var
   P[T],
 # probabilities of each capture event given that capture occured
   delta[nbCaptureEvents],
-# last, but not least, the famous free elements of x: d, who lives in the
-# convex polytope. They represent latent counts of unobservable histories.
-  d[LB],
 # }}} - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Fourth: intermediate values, just technically helpful # {{{ - - - - - - - - -
-# count values for unsure latent histories:
-  x[LU + LB],
-# "full x": count values for all latent histories:
-  X[L + is.Sf.empty],
-# Probability of being capture at least once
-  G,
-# Probabilities of capture, conditionnally that there is any capture at all
-  p[T],
 # convenience iterator for handling "no S-histories" case in the likelihood-loop
   it[L],
 # log-probabilities of each capture event in Omega (for machine accuracy)
   ln.pi.t[L,T],
+# Probability of being capture at least once
+  G,
+# Probabilities of capture, conditionnally that there is any capture at all
+  p[T],
 # log-probabilities for each capture history (for machine accuracy)
   ln.pi[L],
-# log-factors of the likelihood: (for machine accuracy)
+# log-factors of the likelihood (for machine accuracy)
   ln.Likelihood.f[L],
 # log-likelihood (for machine accuracy)
   ln.Likelihood,
-# uniform values in [0,1] used for sampling in the bounding box
-  unifs[LB],
-# dummy node used for rejecting unpositive X values, given as data to 1
-  BernoulliTrick,
-# corresponding parameter: 0 if the X is to be rejected, 1 if not
-  BernoulliTrickP,
-# test whether all x's are positive:
-  xPos[LU + LB],
-  allxPos,
-# latent number of captured individuals (sum(X))
+# latent number of captured individuals (sum(X) = cst)
   n,
 # total estimated number of individuals
   N,
@@ -118,39 +96,6 @@ model {
   # }}} - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
-  # Latent counts X #{{{ -  - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-  # W need to trick JAGS in order to make it reject the negative X.
-  # The node BernoulliTrick will be given as a data value, 1, and its
-  # distribution will be certain, either 0 or 1 depending on the value X being
-  # consistent or not.
-
-  # Sample d from the bounding box:
-  for(i in 1:LB){
-    unifs[i] ~ dunif(0,1)
-    d[i] <- trunc(unifs[i] * (box.ceilings[i] + 1))
-  }
-
-  # Rebuild x from d using the kernel B of the observation matrix A
-  x <- B %*% d + x0
-  # if any of x is negative, reject the proposal:
-  for(i in 1:LM){
-    xPos[i] <- step(x[i]) # check each x
-  }
-  allxPos <- sum(xPos) # sum all the tests
-  BernoulliTrickP <- step((allxPos == LM) - 1) # set it to 0 if any failed..
-  # so that this'll be unconsistent with the data then, and the sample will be..
-  BernoulliTrick ~ dbern(BernoulliTrickP) # ..rejected.
-
-  # Rebuild X: gather all latent histories counts together
-  # 1) Sure stories (may be dummy data if the true `S.f` vector is empty)
-  for(i in 1:jagsLS){ X[i] <- jagsS.f[i] }
-  # 2) unobservable stories and ghosts
-  for(i in 1:LM){ X[i + jagsLS] <- x[i] }
-
-  # }}} - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-
   # Likelihood # {{{ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   # Probabilities of each single capture event in Omega:
@@ -172,18 +117,13 @@ model {
     it[omega] <- omega + is.Sf.empty
 
     # Explicit each factor of the total log-likelihood:
-    # ln.Likelihood.f[omega] <- X[it[omega]] * ln.pi[omega]
-    #                         - logfact(X[it[omega]])
-    # For some reason, logfact(0) prints an annoying warning "value out of range
-    # in 'lgamma'", so we need to trick: (logfact(0) = 0)
-    # I know this looks useless.. but this `step` function silents it down :
-    ln.Likelihood.f[omega] <- X[it[omega]] * ln.pi[omega]
-                            - logfact(step(X[it[omega]] - 1) * X[it[omega]])
+    ln.Likelihood.f[omega] <- fixed.X[it[omega]] * ln.pi[omega]
+                            - logfact(fixed.X[it[omega]])
   }
 
   # Poisson trick!
   # Likelihood, formula for the multinomial distribution:
-  n <- sum(X) # this is why the fake `S.f` data, if they exist, must be 0
+  n <- sum(fixed.X) # this is why the fake `S.f` data, if they exist, must be 0
   ln.Likelihood <- logfact(n) + sum(ln.Likelihood.f[])
                  - n * log(G) - (N - n) * log(1 - G)
   lambda <- PoissonC - ln.Likelihood
