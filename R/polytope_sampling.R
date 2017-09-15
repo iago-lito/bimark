@@ -114,7 +114,7 @@ EstimateLatentCounts <- function(model, method='boundingBox', # {{{
   LU <- LL + LR
   LB <- LL * LR
   LM <- LU + LB
-  L <- LS + LL + LR + LB
+  L <- LS + LM
   # data counts
   F <- model$F
   # special LS = 0 case to handle
@@ -157,18 +157,44 @@ EstimateLatentCounts <- function(model, method='boundingBox', # {{{
                     box.ceilings = box.ceilings,
                     B = as.matrix(ComputeB(LL, LR)),
                     PoissonC = 1e5,
-                    PoissonTrick = 1)
+                    PoissonTrick = 1,
+                    BernoulliTrick = 1)
 
-  print(LS)
-  print(LL)
-  print(LR)
+  # Initial values must be consistent with BernoulliTrick at least: all zeroes
+  # for the polytope, say.
+  inits <- list(unifs=rep(0, LB)) # => d=rep(0, LB), but it is "fixed node"..
+  # TODO: mak'em parameters
+  RNG <- list(.RNG.name="base::Marsaglia-Multicarry", .RNG.seed=8)
+
+  # build
   jm <- rjags::jags.model(jagsFile,
-                          data=c(data.list, priors), quiet=TRUE)
+                          data=c(data.list, priors),
+                          # seed RNGs
+                          inits=c(inits, RNG), # TODO: parameters
+                          quiet=TRUE,
+                          )
 
-  return(jm)
+  # Run!
+  # length of the chain
+  n.iter <- 1e3 # TODO: make it a parameter
+  # only ONE chain will be processed. Launch in parallel if you need several.
+  n.chains <- 1
+  # variables to monitor/track during MCMC process (many for debugging)
+  monitor <- c('ln.Likelihood', 'X', 'jagsS.f', 'x', 'B', 'd', 'x0', 'n', 'N',
+               'allxPos', 'BernoulliTrickP', 'BernoulliTrick', 'G', 'P', 'p',
+               'delta')
+  mc <- rjags::coda.samples(jm,
+                            variable.names=monitor,
+                            n.iter=n.iter,
+                            n.chains=n.chains)[[1]] # only one chain
+
+  return(mc)
 
 }
-m <- BimarkSimulationModel(N=20, T=5)
-EstimateLatentCounts(m)
+# set.seed(6)  # got another bug here: 'lgamma' output + R error
+# set.seed(11) # got another bug there: degenerated case
+# set.seed(2)  # got an error here: invalid parent values: solved!
+# m <- BimarkSimulationModel(N=20, T=5)
+# mc <- EstimateLatentCounts(m)
 # }}}
 
